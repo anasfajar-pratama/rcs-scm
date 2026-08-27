@@ -10,6 +10,12 @@ import BrandsPage from './pages/product/BrandsPage';
 import PriceListsPage from './pages/product/PriceListsPage';
 import CustomersPage from './pages/crm/CustomersPage';
 import SuppliersPage from './pages/purchasing/SuppliersPage';
+import PrPage from './pages/purchasing/PrPage';
+import RfqPage from './pages/purchasing/RfqPage';
+import QuotationPage from './pages/purchasing/QuotationPage';
+import PoPage from './pages/purchasing/PoPage';
+import ReceivingPage from './pages/purchasing/ReceivingPage';
+import PurchaseReturnPage from './pages/purchasing/PurchaseReturnPage';
 import WarehousesPage from './pages/inventory/WarehousesPage';
 import InventoryPage from './pages/inventory/InventoryPage';
 import TransfersPage from './pages/inventory/TransfersPage';
@@ -50,6 +56,12 @@ export const router = createBrowserRouter([
 
           { path: '/purchasing', element: <PurchasingPage /> },
           { path: '/purchasing/suppliers', element: <SuppliersPage /> },
+          { path: '/purchasing/pr', element: <PrPage /> },
+          { path: '/purchasing/rfq', element: <RfqPage /> },
+          { path: '/purchasing/quotation', element: <QuotationPage /> },
+          { path: '/purchasing/po', element: <PoPage /> },
+          { path: '/purchasing/receiving', element: <ReceivingPage /> },
+          { path: '/purchasing/return', element: <PurchaseReturnPage /> },
 
           { path: '/production', element: <ProductionPage /> },
           { path: '/reports', element: <ReportsPage /> },

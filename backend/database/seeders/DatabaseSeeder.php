@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             MasterDataSeeder::class,
             StockSeeder::class,
+            PurchasingSeeder::class,
         ]);
     }
 }

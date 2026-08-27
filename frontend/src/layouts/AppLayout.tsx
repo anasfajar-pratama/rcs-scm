@@ -41,7 +41,15 @@ const nav: NavItem[] = [
     to: '/purchasing',
     label: 'Purchasing',
     icon: '◈',
-    children: [{ to: '/purchasing/suppliers', label: 'Supplier' }],
+    children: [
+      { to: '/purchasing/suppliers', label: 'Supplier' },
+      { to: '/purchasing/pr', label: 'PR' },
+      { to: '/purchasing/rfq', label: 'RFQ' },
+      { to: '/purchasing/quotation', label: 'Quotation' },
+      { to: '/purchasing/po', label: 'PO' },
+      { to: '/purchasing/receiving', label: 'Receiving' },
+      { to: '/purchasing/return', label: 'Purchase Return' },
+    ],
   },
   {
     to: '/crm',

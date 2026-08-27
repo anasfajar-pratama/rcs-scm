@@ -8,13 +8,19 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\PriceListController;
+use App\Http\Controllers\Api\PrController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\PurchaseOrderController;
+use App\Http\Controllers\Api\PurchaseReturnController;
+use App\Http\Controllers\Api\ReceivingController;
 use App\Http\Controllers\Api\ReservationController;
+use App\Http\Controllers\Api\RfqController;
 use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\StockController;
 use App\Http\Controllers\Api\StockMovementController;
 use App\Http\Controllers\Api\StockOpnameController;
 use App\Http\Controllers\Api\SupplierController;
+use App\Http\Controllers\Api\SupplierQuotationController;
 use App\Http\Controllers\Api\TransferController;
 use App\Http\Controllers\Api\UnitController;
 use App\Http\Controllers\Api\WarehouseController;
@@ -74,4 +80,42 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/stock-opnames', [StockOpnameController::class, 'store']);
     Route::get('/stock-opnames/{opname}', [StockOpnameController::class, 'show']);
     Route::post('/stock-opnames/{opname}/post', [StockOpnameController::class, 'post']);
+
+    // Purchasing
+    Route::get('/pr/suggestions', [PrController::class, 'suggestions']);
+    Route::get('/pr', [PrController::class, 'index']);
+    Route::post('/pr', [PrController::class, 'store']);
+    Route::get('/pr/{pr}', [PrController::class, 'show']);
+    Route::post('/pr/{pr}/approve', [PrController::class, 'approve']);
+    Route::post('/pr/{pr}/reject', [PrController::class, 'reject']);
+
+    Route::get('/rfqs', [RfqController::class, 'index']);
+    Route::post('/rfqs', [RfqController::class, 'store']);
+    Route::get('/rfqs/{rfq}', [RfqController::class, 'show']);
+    Route::post('/rfqs/{rfq}/close', [RfqController::class, 'close']);
+    Route::post('/rfqs/{rfq}/suppliers', [RfqController::class, 'addSuppliers']);
+
+    Route::get('/supplier-quotations', [SupplierQuotationController::class, 'index']);
+    Route::post('/supplier-quotations', [SupplierQuotationController::class, 'store']);
+    Route::post('/supplier-quotations/{quotation}/accept', [SupplierQuotationController::class, 'accept']);
+    Route::post('/supplier-quotations/{quotation}/reject', [SupplierQuotationController::class, 'reject']);
+    Route::post('/quotations/compare', [SupplierQuotationController::class, 'compare']);
+    Route::post('/quotations/{quotation}/convert-to-po', [SupplierQuotationController::class, 'convertToPo']);
+
+    Route::get('/pos', [PurchaseOrderController::class, 'index']);
+    Route::post('/pos', [PurchaseOrderController::class, 'store']);
+    Route::get('/pos/{po}', [PurchaseOrderController::class, 'show']);
+    Route::post('/pos/{po}/approve', [PurchaseOrderController::class, 'approve']);
+    Route::post('/pos/{po}/reject', [PurchaseOrderController::class, 'reject']);
+    Route::post('/pos/{po}/cancel', [PurchaseOrderController::class, 'cancel']);
+
+    Route::get('/receivings', [ReceivingController::class, 'index']);
+    Route::post('/receivings', [ReceivingController::class, 'store']);
+    Route::get('/receivings/{receiving}', [ReceivingController::class, 'show']);
+    Route::post('/receivings/{receiving}/post', [ReceivingController::class, 'post']);
+
+    Route::get('/purchase-returns', [PurchaseReturnController::class, 'index']);
+    Route::post('/purchase-returns', [PurchaseReturnController::class, 'store']);
+    Route::get('/purchase-returns/{purchaseReturn}', [PurchaseReturnController::class, 'show']);
+    Route::post('/purchase-returns/{purchaseReturn}/post', [PurchaseReturnController::class, 'post']);
 });
