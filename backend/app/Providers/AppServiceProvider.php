@@ -2,12 +2,17 @@
 
 namespace App\Providers;
 
+use App\Models\Activity;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Customer;
+use App\Models\Lead;
 use App\Models\Location;
+use App\Models\Opportunity;
 use App\Models\PriceList;
 use App\Models\Product;
+use App\Models\SalesOrder;
+use App\Models\SalesQuotation;
 use App\Models\Setting;
 use App\Models\Supplier;
 use App\Models\Unit;
@@ -37,6 +42,11 @@ class AppServiceProvider extends ServiceProvider
             Unit::class,
             Warehouse::class,
             Location::class,
+            Lead::class,
+            Opportunity::class,
+            Activity::class,
+            SalesQuotation::class,
+            SalesOrder::class,
         ];
 
         foreach ($audited as $model) {

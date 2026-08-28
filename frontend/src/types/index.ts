@@ -278,3 +278,110 @@ export interface StockAlert {
   expiring: { product: string; sku: string; lot_no: string; expiry_date: string; status: string; qty: number }[];
   reorder: { product: string; sku: string; reorder_point: number; reorder_quantity: number; current: number; below: boolean }[];
 }
+
+export type LeadStatus = 'new' | 'contacted' | 'qualified' | 'converted' | 'lost';
+
+export interface Lead {
+  id: number;
+  code: string;
+  name: string;
+  company?: string;
+  email?: string;
+  phone?: string;
+  source: string;
+  status: LeadStatus;
+  notes?: string;
+  created_at?: string;
+}
+
+export type OpportunityStage = 'prospecting' | 'qualification' | 'proposal' | 'negotiation' | 'won' | 'lost';
+
+export interface OpportunityLine {
+  id?: number;
+  product_id: number;
+  product_name?: string;
+  qty: number;
+  unit_price: number;
+  discount_percent?: number;
+}
+
+export interface Opportunity {
+  id: number;
+  code: string;
+  customer_id: number;
+  customer_name?: string;
+  title: string;
+  stage: OpportunityStage;
+  expected_value: number;
+  probability: number;
+  expected_close_date?: string;
+  notes?: string;
+  lines?: OpportunityLine[];
+  created_at?: string;
+}
+
+export type ActivityType = 'call' | 'email' | 'meeting' | 'task' | 'follow_up';
+export type ActivityStatus = 'open' | 'done' | 'cancelled';
+
+export interface Activity {
+  id: number;
+  subject: string;
+  type: ActivityType;
+  due_date?: string;
+  status: ActivityStatus;
+  priority: 'low' | 'medium' | 'high';
+  notes?: string;
+  related_type?: string;
+  related_id?: number;
+  related_label?: string;
+  created_at?: string;
+}
+
+export interface SalesQuotationLine {
+  id?: number;
+  product_id: number;
+  product_name?: string;
+  qty: number;
+  unit_price: number;
+  discount_percent?: number;
+}
+
+export interface SalesQuotation {
+  id: number;
+  quotation_no: string;
+  customer_id: number;
+  customer_name?: string;
+  quotation_date?: string;
+  valid_until?: string;
+  currency: string;
+  status: string;
+  notes?: string;
+  lines?: SalesQuotationLine[];
+  created_at?: string;
+}
+
+export interface SalesOrderLine {
+  id?: number;
+  product_id: number;
+  product_name?: string;
+  qty: number;
+  unit_price: number;
+  discount_percent?: number;
+  qty_shipped?: number;
+}
+
+export interface SalesOrder {
+  id: number;
+  so_no: string;
+  sales_quotation_id?: number;
+  customer_id: number;
+  customer_name?: string;
+  warehouse_id: number;
+  warehouse_name?: string;
+  order_date?: string;
+  status: string;
+  notes?: string;
+  lines?: SalesOrderLine[];
+  reservations?: { id: number; reservation_no: string; status: string }[];
+  created_at?: string;
+}
