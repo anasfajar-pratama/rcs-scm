@@ -6,6 +6,7 @@ import { quotationAccept, quotationConvertToSo, quotationReject, quotationSend }
 import { useListQuery, useMasterQuery } from '../../hooks/useMaster';
 import type { SalesQuotation, SalesQuotationLine } from '../../types';
 import { Badge, Button, Card, EmptyState, Input, Modal, PageHeader, Select, Spinner, Table } from '../../components/ui';
+import { getErrorMessage, useToast } from '../../components/Toast';
 
 const statusColor: Record<string, 'green' | 'gray' | 'yellow' | 'blue' | 'red'> = {
   draft: 'gray',
@@ -18,6 +19,7 @@ const statusColor: Record<string, 'green' | 'gray' | 'yellow' | 'blue' | 'red'> 
 export default function QuotationsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const { data, isLoading, setSearch, setPage, meta } = useMasterQuery<SalesQuotation>('sales-quotations');
   const customers = useListQuery<{ id: number; name: string }>('customers');
   const products = useListQuery<{ id: number; name: string; sale_price: number }>('products');
@@ -42,12 +44,35 @@ export default function QuotationsPage() {
       invalidate();
       setOpen(false);
       setEditing(null);
+      toast(editing ? 'Quotation diperbarui.' : 'Quotation dibuat.');
     },
+    onError: (e) => toast(getErrorMessage(e), 'error'),
   });
 
-  const send = useMutation({ mutationFn: (id: number) => quotationSend(id), onSuccess: invalidate });
-  const accept = useMutation({ mutationFn: (id: number) => quotationAccept(id), onSuccess: invalidate });
-  const reject = useMutation({ mutationFn: (id: number) => quotationReject(id), onSuccess: invalidate });
+  const send = useMutation({
+    mutationFn: (id: number) => quotationSend(id),
+    onSuccess: () => {
+      invalidate();
+      toast('Quotation dikirim.');
+    },
+    onError: (e) => toast(getErrorMessage(e), 'error'),
+  });
+  const accept = useMutation({
+    mutationFn: (id: number) => quotationAccept(id),
+    onSuccess: () => {
+      invalidate();
+      toast('Quotation diterima.');
+    },
+    onError: (e) => toast(getErrorMessage(e), 'error'),
+  });
+  const reject = useMutation({
+    mutationFn: (id: number) => quotationReject(id),
+    onSuccess: () => {
+      invalidate();
+      toast('Quotation ditolak.');
+    },
+    onError: (e) => toast(getErrorMessage(e), 'error'),
+  });
 
   const convert = useMutation({
     mutationFn: () => quotationConvertToSo(soTarget!.id, { warehouse_id: Number(soWarehouse) }),
@@ -56,13 +81,19 @@ export default function QuotationsPage() {
       queryClient.invalidateQueries({ queryKey: ['sales-orders'] });
       setSoTarget(null);
       setSoWarehouse('');
+      toast('Sales order dibuat dari quotation.');
       navigate('/crm/sales-orders');
     },
+    onError: (e) => toast(getErrorMessage(e), 'error'),
   });
 
   const remove = useMutation({
     mutationFn: (id: number) => crudApi<SalesQuotation>('sales-quotations').destroy(id),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      toast('Quotation dihapus.');
+    },
+    onError: (e) => toast(getErrorMessage(e), 'error'),
   });
 
   const set = (k: string, v: unknown) => setForm((f) => ({ ...f, [k]: v }));

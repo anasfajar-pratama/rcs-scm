@@ -15,5 +15,10 @@ class DatabaseSeeder extends Seeder
             StockSeeder::class,
             PurchasingSeeder::class,
         ]);
+
+        // Demo data (UAT). Disable in tests via SEED_DEMO=false.
+        if (env('SEED_DEMO', true)) {
+            $this->call(DemoSeeder::class);
+        }
     }
 }

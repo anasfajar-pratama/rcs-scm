@@ -153,7 +153,8 @@ class StockService
     }
 
     /**
-     * Allocate on-hand stock for a shipment, decrementing actual qty.
+     * Allocate on-hand stock for a shipment, decrementing actual qty and
+     * reducing qty_reserved (the goods leave the reservation).
      */
     public function allocateForShipment(Reservation $reservation, float $quantity): void
     {
@@ -183,6 +184,12 @@ class StockService
                     $reservation->reservation_no,
                     'Pengiriman dari reservasi',
                 );
+
+                // Reduce reserved quantity since the stock physically leaves.
+                Stock::where('warehouse_id', $reservation->warehouse_id)
+                    ->where('product_id', $line->product_id)
+                    ->where('batch_id', $line->batch_id)
+                    ->decrement('qty_reserved', $take);
 
                 $line->quantity_shipped = (float) $line->quantity_shipped + $take;
                 $line->save();

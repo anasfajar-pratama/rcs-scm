@@ -7,15 +7,18 @@ use App\Http\Controllers\Api\BatchController;
 use App\Http\Controllers\Api\BrandController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\LeadController;
 use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\OpportunityController;
 use App\Http\Controllers\Api\PriceListController;
 use App\Http\Controllers\Api\PrController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\ProductionOrderController;
 use App\Http\Controllers\Api\PurchaseOrderController;
 use App\Http\Controllers\Api\PurchaseReturnController;
 use App\Http\Controllers\Api\ReceivingController;
+use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\ReservationController;
 use App\Http\Controllers\Api\RfqController;
 use App\Http\Controllers\Api\SalesOrderController;
@@ -28,6 +31,8 @@ use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\Api\SupplierQuotationController;
 use App\Http\Controllers\Api\TransferController;
 use App\Http\Controllers\Api\UnitController;
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\WarehouseController;
 use Illuminate\Support\Facades\Route;
 
@@ -162,5 +167,35 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/sales-orders/{so}', [SalesOrderController::class, 'show']);
     Route::post('/sales-orders/{so}/approve', [SalesOrderController::class, 'approve']);
     Route::post('/sales-orders/{so}/reject', [SalesOrderController::class, 'reject']);
+    Route::post('/sales-orders/{so}/fulfill', [SalesOrderController::class, 'fulfill']);
     Route::post('/sales-orders/{so}/cancel', [SalesOrderController::class, 'cancel']);
+
+    // Production
+    Route::get('/production-orders', [ProductionOrderController::class, 'index']);
+    Route::post('/production-orders', [ProductionOrderController::class, 'store']);
+    Route::get('/production-orders/{productionOrder}', [ProductionOrderController::class, 'show']);
+    Route::post('/production-orders/{productionOrder}/start', [ProductionOrderController::class, 'start']);
+    Route::post('/production-orders/{productionOrder}/complete', [ProductionOrderController::class, 'complete']);
+    Route::post('/production-orders/{productionOrder}/cancel', [ProductionOrderController::class, 'cancel']);
+
+    // Dashboard & Reports
+    Route::get('/dashboard/summary', [DashboardController::class, 'summary']);
+    Route::get('/reports/inventory', [ReportController::class, 'inventory']);
+    Route::get('/reports/stock-movements', [ReportController::class, 'stockMovements']);
+    Route::get('/reports/purchasing', [ReportController::class, 'purchasing']);
+    Route::get('/reports/sales', [ReportController::class, 'sales']);
+    Route::get('/reports/production', [ReportController::class, 'production']);
+    Route::get('/reports/customers', [ReportController::class, 'customers']);
+    Route::get('/reports/pipeline', [ReportController::class, 'pipeline']);
+    Route::get('/reports/expiry', [ReportController::class, 'expiry']);
+
+    // System
+    Route::get('/users', [UserController::class, 'index']);
+    Route::post('/users', [UserController::class, 'store']);
+    Route::get('/users/{user}', [UserController::class, 'show']);
+    Route::put('/users/{user}', [UserController::class, 'update']);
+    Route::delete('/users/{user}', [UserController::class, 'destroy']);
+
+    Route::get('/roles', [RoleController::class, 'index']);
+    Route::get('/permissions', [RoleController::class, 'permissions']);
 });

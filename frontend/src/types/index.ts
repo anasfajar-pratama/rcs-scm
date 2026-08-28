@@ -385,3 +385,82 @@ export interface SalesOrder {
   reservations?: { id: number; reservation_no: string; status: string }[];
   created_at?: string;
 }
+
+export interface ProductionOrderLine {
+  id?: number;
+  component_id: number;
+  component_name?: string;
+  planned_qty: number;
+  issued_qty?: number;
+  qty_per_unit?: number;
+}
+
+export interface ProductionBatch {
+  id: number;
+  batch_id?: number;
+  quantity: number;
+  lot_no?: string;
+  expiry_date?: string;
+  status?: string;
+}
+
+export interface ProductionOrder {
+  id: number;
+  po_no: string;
+  product_id: number;
+  product_name?: string;
+  planned_qty: number;
+  produced_qty?: number;
+  warehouse_id: number;
+  warehouse_name?: string;
+  order_date?: string;
+  due_date?: string;
+  status: string;
+  notes?: string;
+  lines?: ProductionOrderLine[];
+  production_batches?: ProductionBatch[];
+  created_at?: string;
+}
+
+export interface ReservationLine {
+  id?: number;
+  product_id: number;
+  product_name?: string;
+  batch_id?: number;
+  lot_no?: string;
+  quantity: number;
+  quantity_shipped?: number;
+}
+
+export interface Reservation {
+  id: number;
+  reservation_no: string;
+  warehouse_id: number;
+  warehouse_name?: string;
+  reserved_date?: string;
+  status: string;
+  lines?: ReservationLine[];
+  created_at?: string;
+}
+
+export interface DashboardSummary {
+  kpi: {
+    stock_items: number;
+    stock_value: number;
+    po_open: number;
+    so_open: number;
+    customers: number;
+    suppliers: number;
+    pipeline_value: number;
+    opportunities: number;
+  };
+  alerts: {
+    expiring: { product: string; sku: string; lot_no: string; expiry_date: string; qty: number }[];
+    reorder: { product: string; sku: string; current: number; reorder_point: number }[];
+  };
+}
+
+export interface ReportData {
+  rows: Record<string, string | number | null>[];
+  total_value?: number;
+}

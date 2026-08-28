@@ -5,6 +5,7 @@ import { activityDone } from '../../api/crm';
 import { useListQuery, useMasterQuery } from '../../hooks/useMaster';
 import type { Activity } from '../../types';
 import { Badge, Button, Card, EmptyState, Input, Modal, PageHeader, Select, Spinner, Table, Textarea } from '../../components/ui';
+import { getErrorMessage, useToast } from '../../components/Toast';
 
 const statusColor: Record<string, 'green' | 'gray' | 'yellow' | 'blue' | 'red'> = {
   open: 'yellow',
@@ -35,6 +36,7 @@ const statusFilterOptions = [
 
 export default function ActivitiesPage() {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [statusFilter, setStatusFilter] = useState('');
   const { data, isLoading, setSearch, setPage, meta } = useMasterQuery<Activity>('activities', {
     status: statusFilter || undefined,
@@ -58,17 +60,27 @@ export default function ActivitiesPage() {
       invalidate();
       setOpen(false);
       setEditing(null);
+      toast(editing ? 'Activity diperbarui.' : 'Activity dibuat.');
     },
+    onError: (e) => toast(getErrorMessage(e), 'error'),
   });
 
   const done = useMutation({
     mutationFn: (id: number) => activityDone(id),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      toast('Activity ditandai selesai.');
+    },
+    onError: (e) => toast(getErrorMessage(e), 'error'),
   });
 
   const remove = useMutation({
     mutationFn: (id: number) => crudApi<Activity>('activities').destroy(id),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      toast('Activity dihapus.');
+    },
+    onError: (e) => toast(getErrorMessage(e), 'error'),
   });
 
   const set = (k: string, v: unknown) => setForm((f) => ({ ...f, [k]: v }));

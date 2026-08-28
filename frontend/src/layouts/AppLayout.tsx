@@ -35,6 +35,7 @@ const nav: NavItem[] = [
       { to: '/inventory/adjustments', label: 'Adjustment' },
       { to: '/inventory/movements', label: 'Mutasi' },
       { to: '/inventory/opname', label: 'Stock Opname' },
+      { to: '/inventory/reservations', label: 'Reservasi' },
     ],
   },
   {
@@ -65,9 +66,19 @@ const nav: NavItem[] = [
       { to: '/crm/customers', label: 'Customers' },
     ],
   },
-  { to: '/production', label: 'Production', icon: '⚙' },
+  {
+    to: '/production',
+    label: 'Production',
+    icon: '⚙',
+    children: [
+      { to: '/production', label: 'Production' },
+      { to: '/production/orders', label: 'Production Orders' },
+      { to: '/production/batches', label: 'Batch / Traceability' },
+    ],
+  },
   { to: '/reports', label: 'Reports', icon: '▥' },
   { to: '/settings', label: 'Settings', icon: '⚙' },
+  { to: '/users', label: 'Users', icon: '👤' },
 ];
 
 function SidebarLink({ item }: { item: NavItem }) {

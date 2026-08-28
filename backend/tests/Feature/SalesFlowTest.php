@@ -242,4 +242,46 @@ class SalesFlowTest extends TestCase
 
         $this->assertEquals(0, (float) $stockAfter->qty_reserved);
     }
+
+    public function test_so_fulfill_decreases_stock_and_marks_fulfilled(): void
+    {
+        $customer = Customer::first();
+        $product = Product::first();
+        $warehouse = Warehouse::first();
+
+        $so = $this->actingAs($this->admin)
+            ->postJson('/api/v1/sales-orders', [
+                'customer_id' => $customer->id,
+                'warehouse_id' => $warehouse->id,
+                'lines' => [
+                    ['product_id' => $product->id, 'qty' => 5, 'unit_price' => 125000],
+                ],
+            ])
+            ->assertCreated()
+            ->json('data');
+
+        $this->actingAs($this->admin)
+            ->postJson("/api/v1/sales-orders/{$so['id']}/approve")
+            ->assertOk();
+
+        $stockBefore = Stock::where('warehouse_id', $warehouse->id)
+            ->where('product_id', $product->id)
+            ->whereRaw('qty_reserved > 0')
+            ->first();
+        $this->assertNotNull($stockBefore);
+        $qtyOnHandBefore = (float) $stockBefore->qty_on_hand;
+
+        $this->actingAs($this->admin)
+            ->postJson("/api/v1/sales-orders/{$so['id']}/fulfill")
+            ->assertOk()
+            ->assertJsonPath('data.status', 'fulfilled');
+
+        $stockAfter = Stock::where('warehouse_id', $warehouse->id)
+            ->where('product_id', $product->id)
+            ->where('batch_id', $stockBefore->batch_id)
+            ->first();
+
+        $this->assertEquals($qtyOnHandBefore - 5, (float) $stockAfter->qty_on_hand);
+        $this->assertEquals(0, (float) $stockAfter->qty_reserved);
+    }
 }

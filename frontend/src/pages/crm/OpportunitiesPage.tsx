@@ -5,6 +5,7 @@ import { opportunityStage } from '../../api/crm';
 import { useListQuery, useMasterQuery } from '../../hooks/useMaster';
 import type { Opportunity, OpportunityLine, OpportunityStage as Stage } from '../../types';
 import { Button, Card, EmptyState, Input, Modal, PageHeader, Select, Spinner } from '../../components/ui';
+import { getErrorMessage, useToast } from '../../components/Toast';
 
 const STAGES: { key: Stage; label: string }[] = [
   { key: 'prospecting', label: 'Prospecting' },
@@ -19,6 +20,7 @@ const stageIndex = (s: string) => STAGES.findIndex((x) => x.key === s);
 
 export default function OpportunitiesPage() {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const { data, isLoading } = useMasterQuery<Opportunity>('opportunities');
   const customers = useListQuery<{ id: number; name: string }>('customers');
   const products = useListQuery<{ id: number; name: string; sale_price: number }>('products');
@@ -39,17 +41,27 @@ export default function OpportunitiesPage() {
       invalidate();
       setOpen(false);
       setEditing(null);
+      toast(editing ? 'Opportunity diperbarui.' : 'Opportunity dibuat.');
     },
+    onError: (e) => toast(getErrorMessage(e), 'error'),
   });
 
   const move = useMutation({
     mutationFn: ({ id, stage }: { id: number; stage: string }) => opportunityStage(id, stage),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      toast('Stage opportunity diubah.');
+    },
+    onError: (e) => toast(getErrorMessage(e), 'error'),
   });
 
   const remove = useMutation({
     mutationFn: (id: number) => crudApi<Opportunity>('opportunities').destroy(id),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      toast('Opportunity dihapus.');
+    },
+    onError: (e) => toast(getErrorMessage(e), 'error'),
   });
 
   const openCreate = () => {
