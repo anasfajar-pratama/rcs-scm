@@ -7,7 +7,12 @@
       "Shell(php artisan migrate --force)",
       "Shell(php artisan test)",
       "Shell(npm:*)",
-      "Shell(php artisan db:seed --force)"
+      "Shell(php artisan db:seed --force)",
+      "Shell(where pandoc 2>nul & where python 2>nul & where py 2>nul)",
+      "Shell(python -c \"import docx; print('python-docx OK')\" 2>&1)",
+      "Shell(where node 2>nul & where npm 2>nul & where php 2>nul)",
+      "Shell(node gen-docx.js 2>&1)",
+      "Shell(dir:*)"
     ],
     "deny": [],
     "defaultMode": "default"
