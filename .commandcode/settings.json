@@ -12,7 +12,8 @@
       "Shell(python -c \"import docx; print('python-docx OK')\" 2>&1)",
       "Shell(where node 2>nul & where npm 2>nul & where php 2>nul)",
       "Shell(node gen-docx.js 2>&1)",
-      "Shell(dir:*)"
+      "Shell(dir:*)",
+      "powershell"
     ],
     "deny": [],
     "defaultMode": "default"
