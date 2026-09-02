@@ -67,13 +67,26 @@ SANCTUM_STATEFUL_DOMAINS=app.rcsscm.test
 
 ### 2.4 Migrasi & Seed
 
+> Untuk deploy awal (database kosong), gunakan `migrate:fresh` agar tidak bentrok dengan tabel lama.
+
 ```bash
-php artisan migrate --force
-php artisan db:seed --force        # role, admin, master data, demo data
+php artisan migrate:fresh --force
+php artisan db:seed --force        # role, user, master data, demo data
 php artisan storage:link           # jika pakai upload
 php artisan config:cache
 php artisan route:cache
 ```
+
+**Default Users (setelah seed):**
+
+| Role | Email | Password |
+|------|-------|----------|
+| Super Admin | admin@rcsscm.test | password |
+| Supervisor | supervisor@rcsscm.test | password123 |
+| Sales | sales@rcsscm.test | password123 |
+| Warehouse | warehouse@rcsscm.test | password123 |
+| Purchasing | purchasing@rcsscm.test | password123 |
+| Production | production@rcsscm.test | password123 |
 
 ### 2.5 Scheduler (untuk alert/queue)
 

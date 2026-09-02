@@ -32,10 +32,19 @@ class RoleAndPermissionSeeder extends Seeder
             }
         }
 
+        // Supervisor: view-only across all modules
+        $supervisorRole = Role::firstOrCreate(['name' => 'supervisor']);
+        $supervisorPerms = collect($permissions)->filter(
+            fn (Permission $p) => in_array(
+                substr($p->name, strpos($p->name, '.') + 1),
+                ['view-any', 'view']
+            )
+        )->pluck('name')->all();
+        $supervisorRole->syncPermissions($supervisorPerms);
+
         $roles = [
             'super-admin' => '*',
-            'admin' => ['*'],
-            'supervisor' => ['view-any', 'view', 'approve'],
+            'admin' => '*',
             'sales' => ['leads', 'customers', 'contacts', 'opportunities', 'activities', 'quotations-sales', 'sales-orders', 'products', 'stocks', 'dashboard', 'reports'],
             'warehouse' => ['warehouses', 'locations', 'stocks', 'stock-movements', 'transfers', 'adjustments', 'reservations', 'stock-opnames', 'receivings', 'products', 'batches', 'dashboard'],
             'purchasing' => ['suppliers', 'pr', 'rfq', 'quotations', 'pos', 'receivings', 'purchase-returns', 'products', 'stocks', 'dashboard', 'reports'],
