@@ -115,16 +115,19 @@ npm run build
 ### 3.2 Upload
 
 1. Upload isi `frontend/dist/` ke `domains/app.rcsscm.test/public_html`.
-2. Pastikan `.htaccess` SPA (fallback ke index.html):
+2. Pastikan `.htaccess` SPA (fallback ke index.html) terpasang — file ini sudah tersedia di `frontend/public/.htaccess` dan otomatis ikut ter-copy ke `dist/` saat `npm run build`:
 
 ```apache
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteBase /
-  RewriteRule ^index\.html$ - [L]
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule . /index.html [L]
+
+  # File/direktori yang benar-benar ada tetap dilayani langsung (assets, dll)
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Selain itu, semua request di-fallback ke index.html (SPA routing)
+  RewriteRule ^ index.html [L]
 </IfModule>
 ```
 

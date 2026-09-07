@@ -1,0 +1,11 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # File/direktori yang benar-benar ada tetap dilayani langsung (assets, dll)
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Selain itu, semua request di-fallback ke index.html (SPA routing)
+  RewriteRule ^ index.html [L]
+</IfModule>

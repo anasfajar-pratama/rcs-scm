@@ -1,5 +1,5 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { logout } from '../api/auth';
 
@@ -82,9 +82,21 @@ const nav: NavItem[] = [
 ];
 
 function SidebarLink({ item }: { item: NavItem }) {
-  const [open, setOpen] = useState(false);
-  const isActive = (path: string) =>
-    typeof window !== 'undefined' && window.location.pathname.startsWith(path);
+  const location = useLocation();
+  const isActive = (path: string) => location.pathname.startsWith(path);
+
+  // Section yang berisi route aktif terbuka saat pertama kali dirender,
+  // tapi setelah itu user bebas membuka/menutupnya.
+  const [open, setOpen] = useState(() => isActive(item.to));
+
+  // Saat berpindah ke route di dalam section ini (misal dari halaman lain),
+  // buka kembali section tersebut.
+  useEffect(() => {
+    if (!open && isActive(item.to)) {
+      setOpen(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   if (!item.children) {
     return (
@@ -102,7 +114,7 @@ function SidebarLink({ item }: { item: NavItem }) {
     );
   }
 
-  const expanded = open || isActive(item.to);
+  const expanded = open;
 
   return (
     <div>
