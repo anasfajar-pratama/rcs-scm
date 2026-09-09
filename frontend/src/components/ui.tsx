@@ -211,7 +211,7 @@ export function Modal({
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className={`bg-white rounded-xl shadow-xl w-full ${size === 'lg' ? 'max-w-3xl' : 'max-w-lg'} max-h-[90vh] overflow-auto`}>
+      <div id="rcs-modal-scroll" className={`bg-white rounded-xl shadow-xl w-full ${size === 'lg' ? 'max-w-3xl' : 'max-w-lg'} max-h-[90vh] overflow-auto`}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
           <h3 className="text-lg font-semibold">{title}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>

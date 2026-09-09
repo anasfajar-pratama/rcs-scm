@@ -17,7 +17,10 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res = await login(email, password);
-      setAuth(res.access_token, res.user);
+      const expiresAt = res.expires_at
+        ? new Date(res.expires_at).getTime()
+        : Date.now() + 8 * 60 * 60 * 1000; // fallback 8 jam bila backend tidak mengirim expires_at
+      setAuth(res.access_token, res.user, expiresAt);
       navigate('/', { replace: true });
     } catch (err: any) {
       setError(err?.response?.data?.message ?? 'Login gagal. Periksa kredensial.');

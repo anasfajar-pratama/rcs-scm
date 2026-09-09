@@ -9,16 +9,17 @@ import { Badge, Button, Card, EmptyState, Modal, PageHeader, Spinner, Table } fr
 
 export default function ProductsPage() {
   const queryClient = useQueryClient();
-  const { data, isLoading, meta, setSearch, setPage } = useMasterQuery<Product>('products');
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Product | null>(null);
+  const [confirmDel, setConfirmDel] = useState<Product | null>(null);
+  const [type, setType] = useState('');
+
+  const { data, isLoading, meta, setSearch, setPage } = useMasterQuery<Product>('products', { type });
   const rawMaterials = useOptions<{
     id: number;
     name: string;
     sku: string;
   }>('products');
-
-  const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState<Product | null>(null);
-  const [confirmDel, setConfirmDel] = useState<Product | null>(null);
 
   const del = useMutation({
     mutationFn: (id: number) => crudApi<Product>('products').destroy(id),
@@ -48,7 +49,7 @@ export default function ProductsPage() {
       />
 
       <Card>
-        <div className="p-4 border-b border-gray-100">
+        <div className="p-4 border-b border-gray-100 flex items-center gap-3">
           <input
             value={''}
             onChange={() => {}}
@@ -57,6 +58,15 @@ export default function ProductsPage() {
             placeholder="Cari nama / SKU..."
             className="w-full max-w-sm border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
+          <select
+            value={type}
+            onChange={(e) => setType(e.target.value)}
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+          >
+            <option value="">Semua Tipe</option>
+            <option value="raw_material">Bahan Baku</option>
+            <option value="finished_good">Produk Jadi</option>
+          </select>
         </div>
 
         {isLoading ? (

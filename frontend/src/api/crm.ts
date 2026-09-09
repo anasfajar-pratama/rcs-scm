@@ -1,4 +1,5 @@
 import { api } from './client';
+import type { LeadHistory } from '../types';
 
 export async function leadStatus(id: number, status: string): Promise<void> {
   await api.post(`/leads/${id}/status`, { status });
@@ -6,6 +7,16 @@ export async function leadStatus(id: number, status: string): Promise<void> {
 
 export async function leadConvert(id: number, payload: Record<string, unknown>): Promise<void> {
   await api.post(`/leads/${id}/convert`, payload);
+}
+
+export async function leadHistories(id: number): Promise<LeadHistory[]> {
+  const { data } = await api.get<{ data: LeadHistory[] }>(`/leads/${id}/histories`);
+  return data.data;
+}
+
+export async function addLeadHistory(id: number, payload: Record<string, unknown>): Promise<LeadHistory> {
+  const { data } = await api.post<{ data: LeadHistory }>(`/leads/${id}/histories`, payload);
+  return data.data;
 }
 
 export async function opportunityStage(id: number, stage: string): Promise<void> {

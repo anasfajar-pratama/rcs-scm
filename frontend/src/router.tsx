@@ -18,6 +18,7 @@ import SuppliersPage from './pages/purchasing/SuppliersPage';
 import PrPage from './pages/purchasing/PrPage';
 import RfqPage from './pages/purchasing/RfqPage';
 import QuotationPage from './pages/purchasing/QuotationPage';
+import QuickPoPage from './pages/purchasing/QuickPoPage';
 import PoPage from './pages/purchasing/PoPage';
 import ReceivingPage from './pages/purchasing/ReceivingPage';
 import PurchaseReturnPage from './pages/purchasing/PurchaseReturnPage';
@@ -76,6 +77,7 @@ export const router = createBrowserRouter([
           { path: '/purchasing/rfq', element: <RfqPage /> },
           { path: '/purchasing/quotation', element: <QuotationPage /> },
           { path: '/purchasing/po', element: <PoPage /> },
+          { path: '/purchasing/quick-po', element: <QuickPoPage /> },
           { path: '/purchasing/receiving', element: <ReceivingPage /> },
           { path: '/purchasing/return', element: <PurchaseReturnPage /> },
 

@@ -1,10 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { getStockAlerts, getStockSummary } from '../../api/inventory';
 import { useMasterQuery, useListQuery } from '../../hooks/useMaster';
 import type { Stock } from '../../types';
 import { Button, Card, EmptyState, PageHeader, Select, Spinner, Table } from '../../components/ui';
+
+// Tampilkan qty tanpa nol trailing & tanpa artefak float (cth: 5, bukan 5.0000 / 4.999999999).
+const formatQty = (v: unknown) => Number(Number(v).toFixed(4)).toLocaleString('id-ID');
+
 export default function InventoryPage() {
-  const { data: stocks, isLoading, meta, setSearch, setPage } = useMasterQuery<Stock>('stocks');
+  const [type, setType] = useState('');
+  const { data: stocks, isLoading, meta, setSearch, setPage } = useMasterQuery<Stock>('stocks', { type });
   const warehouses = useListQuery<{ id: number; name: string }>('warehouses');
 
   const summary = useQuery({
@@ -59,6 +65,17 @@ export default function InventoryPage() {
             placeholder="Cari produk / SKU..."
             className="w-full max-w-sm border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
+          <div className="w-48">
+            <Select
+              value={type}
+              onChange={setType}
+              options={[
+                { label: 'Bahan Baku', value: 'raw_material' },
+                { label: 'Produk Jadi', value: 'finished_good' },
+              ]}
+              placeholder="Semua tipe"
+            />
+          </div>
           <Select
             value={selectedWh}
             onChange={() => {}}
@@ -92,9 +109,9 @@ export default function InventoryPage() {
                   <td className="py-3 px-4">{s.warehouse_name ?? '—'}</td>
                   <td className="py-3 px-4 font-mono text-xs">{s.lot_no ?? '—'}</td>
                   <td className="py-3 px-4">{expiry}</td>
-                  <td className="py-3 px-4 font-semibold">{s.qty_on_hand}</td>
-                  <td className="py-3 px-4">{s.qty_reserved}</td>
-                  <td className="py-3 px-4">{s.qty_available}</td>
+                  <td className="py-3 px-4 font-semibold">{formatQty(s.qty_on_hand)}</td>
+                  <td className="py-3 px-4">{formatQty(s.qty_reserved)}</td>
+                  <td className="py-3 px-4">{formatQty(s.qty_available)}</td>
                 </tr>
               );
             }}

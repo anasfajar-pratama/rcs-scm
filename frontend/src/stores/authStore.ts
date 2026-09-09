@@ -5,7 +5,8 @@ import type { User } from '../types';
 interface AuthState {
   token: string | null;
   user: User | null;
-  setAuth: (token: string, user: User) => void;
+  expiresAt: number | null;
+  setAuth: (token: string, user: User, expiresAt?: number | null) => void;
   setUser: (user: User) => void;
   hasPermission: (permission: string) => boolean;
   hasRole: (role: string) => boolean;
@@ -17,7 +18,8 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       token: null,
       user: null,
-      setAuth: (token, user) => set({ token, user }),
+      expiresAt: null,
+      setAuth: (token, user, expiresAt = null) => set({ token, user, expiresAt }),
       setUser: (user) => set({ user }),
       hasPermission: (permission) => {
         const user = get().user;
@@ -31,11 +33,11 @@ export const useAuthStore = create<AuthState>()(
         if (user.roles.includes('super-admin')) return true;
         return user.roles.includes(role);
       },
-      clear: () => set({ token: null, user: null }),
+      clear: () => set({ token: null, user: null, expiresAt: null }),
     }),
     {
       name: 'rcs-auth',
-      partialize: (state) => ({ token: state.token, user: state.user }),
+      partialize: (state) => ({ token: state.token, user: state.user, expiresAt: state.expiresAt }),
     },
   ),
 );

@@ -21,12 +21,28 @@ export default function SalesOrdersPage() {
   const { toast } = useToast();
   const { data, isLoading, setSearch, setPage, meta } = useMasterQuery<SalesOrder>('sales-orders');
   const customers = useListQuery<{ id: number; name: string }>('customers');
-  const products = useListQuery<{ id: number; name: string; sale_price: number }>('products');
+  const products = useListQuery<{ id: number; name: string; sale_price: number }>('products', {
+    type: 'finished_good',
+  });
   const warehouses = useListQuery<{ id: number; name: string }>('warehouses');
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Record<string, unknown>>({});
   const [lines, setLines] = useState<SalesOrderLine[]>([{ product_id: 0, qty: 1, unit_price: 0 }]);
+  const [detail, setDetail] = useState<SalesOrder | null>(null);
+
+  // Format "Senin, 2026-09-09" — menerima date-only maupun datetime penuh.
+  const formatDate = (d?: string | null) => {
+    if (!d) return '—';
+    const datePart = String(d).slice(0, 10);
+    const [y, m, day] = datePart.split('-').map(Number);
+    if (!y || !m || !day) return String(d);
+    const weekday = new Date(Date.UTC(y, m - 1, day)).toLocaleDateString('id-ID', {
+      weekday: 'long',
+      timeZone: 'UTC',
+    });
+    return `${weekday}, ${datePart}`;
+  };
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['sales-orders'] });
 
@@ -108,7 +124,12 @@ export default function SalesOrdersPage() {
   };
 
   const totalOf = (so: SalesOrder) =>
-    (so.lines ?? []).reduce((sum, l) => sum + (Number(l.qty) || 0) * (Number(l.unit_price) || 0), 0);
+    (so.lines ?? []).reduce((sum, l) => {
+      const qty = Number(l.qty) || 0;
+      const price = Number(l.unit_price) || 0;
+      const disc = Math.min(Number(l.discount_percent) || 0, 100);
+      return sum + qty * price * (1 - disc / 100);
+    }, 0);
 
   return (
     <div>
@@ -161,6 +182,9 @@ export default function SalesOrdersPage() {
                     <Badge color={statusColor[so.status] ?? 'gray'}>{so.status}</Badge>
                   </td>
                   <td className="py-3 px-4 text-right whitespace-nowrap">
+                    <button onClick={() => setDetail(so)} className="text-brand-600 hover:text-brand-800 text-sm mr-3">
+                      Detail
+                    </button>
                     {so.status === 'pending' && (
                       <>
                         <button onClick={() => approve.mutate(so.id)} className="text-green-600 hover:text-green-800 text-sm mr-3">
@@ -294,6 +318,88 @@ export default function SalesOrdersPage() {
             </div>
           ))}
         </div>
+      </Modal>
+
+      <Modal
+        open={Boolean(detail)}
+        onClose={() => setDetail(null)}
+        title={`Detail ${detail?.so_no ?? ''}`}
+        size="lg"
+        footer={
+          <Button variant="secondary" onClick={() => setDetail(null)}>
+            Tutup
+          </Button>
+        }
+      >
+        {detail && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+              <div>
+                <div className="text-xs uppercase tracking-wide text-gray-400 mb-1">Sales Order</div>
+                <div className="font-medium">{detail.so_no}</div>
+                <div className="text-gray-400 text-xs">{formatDate(detail.order_date)}</div>
+                <div className="mt-1"><Badge color={statusColor[detail.status] ?? 'gray'}>{detail.status}</Badge></div>
+              </div>
+              <div>
+                <div className="text-xs uppercase tracking-wide text-gray-400 mb-1">Customer</div>
+                <div className="font-medium">{detail.customer_name ?? `#${detail.customer_id}`}</div>
+                {detail.customer?.phone && <div className="text-gray-400 text-xs">{detail.customer.phone}</div>}
+                {detail.customer?.email && <div className="text-gray-400 text-xs">{detail.customer.email}</div>}
+              </div>
+              <div>
+                <div className="text-xs uppercase tracking-wide text-gray-400 mb-1">Pemenuhan</div>
+                <div className="font-medium">{detail.warehouse_name ?? `#${detail.warehouse_id}`}</div>
+                {detail.notes && <div className="text-gray-400 text-xs mt-1">{detail.notes}</div>}
+              </div>
+            </div>
+
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50">
+                  <tr className="text-left text-gray-600 text-xs uppercase tracking-wide">
+                    <th className="py-2 px-3">Produk</th>
+                    <th className="py-2 px-3">Qty</th>
+                    <th className="py-2 px-3">Harga</th>
+                    <th className="py-2 px-3">Diskon</th>
+                    <th className="py-2 px-3">Dikirim</th>
+                    <th className="py-2 px-3 text-right">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(detail.lines ?? []).length === 0 ? (
+                    <tr><td colSpan={6} className="py-4 px-3 text-sm text-gray-400">Tidak ada item.</td></tr>
+                  ) : (detail.lines ?? []).map((l, i) => {
+                    const qty = Number(l.qty) || 0;
+                    const price = Number(l.unit_price) || 0;
+                    const disc = Math.min(Number(l.discount_percent) || 0, 100);
+                    return (
+                      <tr key={l.id ?? i} className="border-t border-gray-100">
+                        <td className="py-2 px-3">{l.product_name ?? l.product?.name ?? `#${l.product_id}`}</td>
+                        <td className="py-2 px-3">{qty}</td>
+                        <td className="py-2 px-3">Rp {price.toLocaleString('id-ID')}</td>
+                        <td className="py-2 px-3">{disc}%</td>
+                        <td className="py-2 px-3">{Number(l.qty_shipped ?? 0).toLocaleString('id-ID')}</td>
+                        <td className="py-2 px-3 text-right font-medium">Rp {(qty * price * (1 - disc / 100)).toLocaleString('id-ID')}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="flex justify-end items-center gap-3 pt-3 border-t border-gray-200">
+              <span className="text-sm text-gray-500">Grand Total</span>
+              <span className="text-base font-bold">Rp {totalOf(detail).toLocaleString('id-ID')}</span>
+            </div>
+
+            {(detail.reservations ?? []).length > 0 && (
+              <div className="text-sm text-gray-600">
+                <span className="text-gray-400">Reservasi:</span>{' '}
+                {(detail.reservations ?? []).map((r) => `${r.reservation_no} (${r.status})`).join(', ')}
+              </div>
+            )}
+          </div>
+        )}
       </Modal>
     </div>
   );
