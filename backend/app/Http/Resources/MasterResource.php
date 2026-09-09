@@ -23,6 +23,8 @@ class MasterResource extends JsonResource
             'currency' => $this->currency,
             'email' => $this->email,
             'phone' => $this->phone,
+            'pic_name' => $this->pic_name,
+            'pic_phone' => $this->pic_phone,
         ];
     }
 }

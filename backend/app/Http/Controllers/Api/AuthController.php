@@ -27,11 +27,13 @@ class AuthController extends Controller
             return $this->error('Akun dinonaktifkan. Hubungi administrator.', 403);
         }
 
-        $token = $user->createToken('auth')->plainTextToken;
+        $tokenResult = $user->createToken('auth');
+        $token = $tokenResult->plainTextToken;
 
         return $this->success([
             'access_token' => $token,
             'token_type' => 'Bearer',
+            'expires_at' => $tokenResult->accessToken->expires_at?->toISOString(),
             'user' => new UserResource($user->load('roles', 'permissions')),
         ], 'Login berhasil.');
     }

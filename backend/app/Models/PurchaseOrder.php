@@ -10,7 +10,11 @@ class PurchaseOrder extends Model
 {
     protected $fillable = [
         'po_no', 'supplier_id', 'quotation_id', 'currency', 'status',
-        'payment_term', 'notes', 'created_by',
+        'payment_term', 'shipping_cost', 'notes', 'created_by',
+    ];
+
+    protected $casts = [
+        'shipping_cost' => 'float',
     ];
 
     public function supplier(): BelongsTo

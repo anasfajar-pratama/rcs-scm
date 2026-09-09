@@ -20,11 +20,13 @@ class StockController extends Controller
         $perPage = (int) $request->query('per_page', 15);
         $warehouseId = $request->query('warehouse_id');
         $productId = $request->query('product_id');
+        $type = $request->query('type');
 
         $query = Stock::query()
             ->with('warehouse', 'product', 'batch')
             ->when($warehouseId, fn ($q) => $q->where('warehouse_id', $warehouseId))
             ->when($productId, fn ($q) => $q->where('product_id', $productId))
+            ->when($type, fn ($q) => $q->whereHas('product', fn ($q) => $q->where('type', $type)))
             ->whereRaw('(qty_on_hand > 0 OR qty_reserved > 0)')
             ->latest();
 

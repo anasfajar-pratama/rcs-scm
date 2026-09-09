@@ -12,8 +12,8 @@ class Stock extends Model
     ];
 
     protected $casts = [
-        'qty_on_hand' => 'decimal:4',
-        'qty_reserved' => 'decimal:4',
+        'qty_on_hand' => 'float',
+        'qty_reserved' => 'float',
     ];
 
     protected $appends = ['qty_available'];
