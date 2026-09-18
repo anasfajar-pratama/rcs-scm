@@ -2,11 +2,14 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AdjustmentController;
+use App\Http\Controllers\Api\ActivityController;
 use App\Http\Controllers\Api\BatchController;
 use App\Http\Controllers\Api\BrandController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\LeadController;
 use App\Http\Controllers\Api\LocationController;
+use App\Http\Controllers\Api\OpportunityController;
 use App\Http\Controllers\Api\PriceListController;
 use App\Http\Controllers\Api\PrController;
 use App\Http\Controllers\Api\ProductController;
@@ -15,6 +18,8 @@ use App\Http\Controllers\Api\PurchaseReturnController;
 use App\Http\Controllers\Api\ReceivingController;
 use App\Http\Controllers\Api\ReservationController;
 use App\Http\Controllers\Api\RfqController;
+use App\Http\Controllers\Api\SalesOrderController;
+use App\Http\Controllers\Api\SalesQuotationController;
 use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\StockController;
 use App\Http\Controllers\Api\StockMovementController;
@@ -118,4 +123,44 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/purchase-returns', [PurchaseReturnController::class, 'store']);
     Route::get('/purchase-returns/{purchaseReturn}', [PurchaseReturnController::class, 'show']);
     Route::post('/purchase-returns/{purchaseReturn}/post', [PurchaseReturnController::class, 'post']);
+
+    // CRM
+    Route::get('/leads', [LeadController::class, 'index']);
+    Route::post('/leads', [LeadController::class, 'store']);
+    Route::get('/leads/{lead}', [LeadController::class, 'show']);
+    Route::put('/leads/{lead}', [LeadController::class, 'update']);
+    Route::delete('/leads/{lead}', [LeadController::class, 'destroy']);
+    Route::post('/leads/{lead}/status', [LeadController::class, 'updateStatus']);
+    Route::post('/leads/{lead}/convert', [LeadController::class, 'convert']);
+
+    Route::get('/opportunities', [OpportunityController::class, 'index']);
+    Route::post('/opportunities', [OpportunityController::class, 'store']);
+    Route::get('/opportunities/{opportunity}', [OpportunityController::class, 'show']);
+    Route::put('/opportunities/{opportunity}', [OpportunityController::class, 'update']);
+    Route::delete('/opportunities/{opportunity}', [OpportunityController::class, 'destroy']);
+    Route::post('/opportunities/{opportunity}/stage', [OpportunityController::class, 'updateStage']);
+
+    Route::get('/activities', [ActivityController::class, 'index']);
+    Route::post('/activities', [ActivityController::class, 'store']);
+    Route::get('/activities/{activity}', [ActivityController::class, 'show']);
+    Route::put('/activities/{activity}', [ActivityController::class, 'update']);
+    Route::delete('/activities/{activity}', [ActivityController::class, 'destroy']);
+    Route::post('/activities/{activity}/done', [ActivityController::class, 'markDone']);
+
+    Route::get('/sales-quotations', [SalesQuotationController::class, 'index']);
+    Route::post('/sales-quotations', [SalesQuotationController::class, 'store']);
+    Route::get('/sales-quotations/{quotation}', [SalesQuotationController::class, 'show']);
+    Route::put('/sales-quotations/{quotation}', [SalesQuotationController::class, 'update']);
+    Route::delete('/sales-quotations/{quotation}', [SalesQuotationController::class, 'destroy']);
+    Route::post('/sales-quotations/{quotation}/send', [SalesQuotationController::class, 'send']);
+    Route::post('/sales-quotations/{quotation}/accept', [SalesQuotationController::class, 'accept']);
+    Route::post('/sales-quotations/{quotation}/reject', [SalesQuotationController::class, 'reject']);
+    Route::post('/sales-quotations/{quotation}/convert-to-so', [SalesQuotationController::class, 'convertToSo']);
+
+    Route::get('/sales-orders', [SalesOrderController::class, 'index']);
+    Route::post('/sales-orders', [SalesOrderController::class, 'store']);
+    Route::get('/sales-orders/{so}', [SalesOrderController::class, 'show']);
+    Route::post('/sales-orders/{so}/approve', [SalesOrderController::class, 'approve']);
+    Route::post('/sales-orders/{so}/reject', [SalesOrderController::class, 'reject']);
+    Route::post('/sales-orders/{so}/cancel', [SalesOrderController::class, 'cancel']);
 });

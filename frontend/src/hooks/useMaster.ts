@@ -3,16 +3,16 @@ import { useState } from 'react';
 import { crudApi } from '../api/crud';
 import type { Paginated } from '../types';
 
-export function useMasterQuery<T>(resource: string) {
+export function useMasterQuery<T>(resource: string, extraParams: Record<string, unknown> = {}) {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [perPage] = useState(15);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const query = useQuery({
-    queryKey: [resource, search, page, perPage, refreshKey],
+    queryKey: [resource, search, page, perPage, extraParams, refreshKey],
     queryFn: async (): Promise<Paginated<T>> => {
-      return crudApi<T>(resource).index({ search, page, per_page: perPage });
+      return crudApi<T>(resource).index({ search, page, per_page: perPage, ...extraParams });
     },
   });
 

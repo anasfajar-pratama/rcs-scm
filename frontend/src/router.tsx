@@ -9,6 +9,11 @@ import UnitsPage from './pages/product/UnitsPage';
 import BrandsPage from './pages/product/BrandsPage';
 import PriceListsPage from './pages/product/PriceListsPage';
 import CustomersPage from './pages/crm/CustomersPage';
+import LeadsPage from './pages/crm/LeadsPage';
+import OpportunitiesPage from './pages/crm/OpportunitiesPage';
+import ActivitiesPage from './pages/crm/ActivitiesPage';
+import QuotationsPage from './pages/crm/QuotationsPage';
+import SalesOrdersPage from './pages/crm/SalesOrdersPage';
 import SuppliersPage from './pages/purchasing/SuppliersPage';
 import PrPage from './pages/purchasing/PrPage';
 import RfqPage from './pages/purchasing/RfqPage';
@@ -39,6 +44,11 @@ export const router = createBrowserRouter([
           { path: '/', element: <DashboardPage /> },
 
           { path: '/crm', element: <CrmPage /> },
+          { path: '/crm/leads', element: <LeadsPage /> },
+          { path: '/crm/opportunities', element: <OpportunitiesPage /> },
+          { path: '/crm/activities', element: <ActivitiesPage /> },
+          { path: '/crm/quotations', element: <QuotationsPage /> },
+          { path: '/crm/sales-orders', element: <SalesOrdersPage /> },
           { path: '/crm/customers', element: <CustomersPage /> },
 
           { path: '/product', element: <ProductsPage /> },
