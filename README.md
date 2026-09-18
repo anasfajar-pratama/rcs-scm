@@ -14,7 +14,7 @@ Sistem untuk perusahaan **produksi skincare**: CRM (penjualan), Inventory, Purch
 rcs-scm/
 ├── modul.md                 # peta modul & keputusan MVP
 ├── docs/                    # dokumen untuk approval + PDF
-│   ├── 01..04-*.md
+│   ├── 01..06-*.md
 │   └── pdf/RCS-SCM-Dokumen-Rencana-Proyek.pdf
 ├── backend/                 # Laravel 12 API
 └── frontend/                # React SPA
@@ -52,10 +52,15 @@ cd frontend
 npm run build          # hasil di frontend/dist
 ```
 
-## Status (Sprint 0)
-- [x] Backend API + Sanctum auth + RBAC (Spatie) + super admin seed
-- [x] Audit Log (observer) + API response & exception handler
-- [x] Frontend shell (sidebar, topbar, login, protected routes)
-- [ ] Dashboard, CRM, Inventory, Purchasing, Production, Reports, Settings (sprint berikutnya)
+## Status (Sprint 7 — MVP Complete)
 
-Lihat `docs/03-Roadmap-Timeline.md` untuk detail sprint.
+- [x] Sprint 0 — Setup, auth, RBAC, audit log, frontend shell
+- [x] Sprint 1 — Master data (product+BOM, category/unit/brand, price list, customer, supplier, warehouse, settings)
+- [x] Sprint 2 — Inventory core (stock engine, reservasi FEFO, transfer, adjustment, opname, alert)
+- [x] Sprint 3 — Purchasing (PR → RFQ → Quotation → PO → Receiving → Return)
+- [x] Sprint 4 — CRM (leads, pipeline kanban, activities, sales quotation → SO + reservasi)
+- [x] Sprint 5 — Production (production order dari BOM, issue material FEFO, output batch, traceability)
+- [x] Sprint 6 — Reports & Dashboard (8 KPI + 8 laporan + export CSV)
+- [x] Sprint 7 — Polishing, seed demo, toast feedback, dokumentasi user & deploy
+
+Lihat `docs/03-Roadmap-Timeline.md` untuk detail sprint, `docs/05-User-Manual.md` untuk panduan penggunaan, dan `docs/06-Deployment-Hostinger.md` untuk deploy.

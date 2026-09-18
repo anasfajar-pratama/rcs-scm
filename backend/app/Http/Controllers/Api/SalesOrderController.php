@@ -107,6 +107,20 @@ class SalesOrderController extends Controller
         return $this->success($so->fresh(), 'SO ditolak.');
     }
 
+    public function fulfill(SalesOrder $so): JsonResponse
+    {
+        if ($so->status !== 'approved') {
+            return $this->error('SO harus berstatus approved untuk dikirim.', 422);
+        }
+
+        try {
+            $this->salesService->fulfillSo($so);
+            return $this->success($so->fresh()->load('reservations'), 'SO dikirim, stok berkurang.');
+        } catch (\DomainException $e) {
+            return $this->error($e->getMessage(), 422);
+        }
+    }
+
     public function cancel(SalesOrder $so): JsonResponse
     {
         if ($so->status !== 'pending' && $so->status !== 'approved') {

@@ -5,6 +5,7 @@ import { leadConvert, leadStatus } from '../../api/crm';
 import { useMasterQuery } from '../../hooks/useMaster';
 import type { Lead } from '../../types';
 import { Badge, Button, Card, EmptyState, Input, Modal, PageHeader, Select, Spinner, Table, Textarea } from '../../components/ui';
+import { getErrorMessage, useToast } from '../../components/Toast';
 
 const statusColor: Record<string, 'green' | 'gray' | 'yellow' | 'blue' | 'red'> = {
   new: 'blue',
@@ -34,6 +35,7 @@ const statusOptions = [
 
 export default function LeadsPage() {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [statusFilter, setStatusFilter] = useState('');
   const { data, isLoading, setSearch, setPage, meta } = useMasterQuery<Lead>('leads', {
     status: statusFilter || undefined,
@@ -57,12 +59,18 @@ export default function LeadsPage() {
       invalidate();
       setOpen(false);
       setEditing(null);
+      toast(editing ? 'Lead diperbarui.' : 'Lead dibuat.');
     },
+    onError: (e) => toast(getErrorMessage(e), 'error'),
   });
 
   const statusAction = useMutation({
     mutationFn: ({ id, status }: { id: number; status: string }) => leadStatus(id, status),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      toast('Status lead diperbarui.');
+    },
+    onError: (e) => toast(getErrorMessage(e), 'error'),
   });
 
   const convert = useMutation({
@@ -72,12 +80,18 @@ export default function LeadsPage() {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
       setConvertTarget(null);
       setConvertForm({});
+      toast('Lead dikonversi menjadi customer.');
     },
+    onError: (e) => toast(getErrorMessage(e), 'error'),
   });
 
   const remove = useMutation({
     mutationFn: (id: number) => crudApi<Lead>('leads').destroy(id),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      toast('Lead dihapus.');
+    },
+    onError: (e) => toast(getErrorMessage(e), 'error'),
   });
 
   const openCreate = () => {

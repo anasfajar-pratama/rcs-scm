@@ -1,10 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { crudApi } from '../../api/crud';
-import { soApprove, soCancel, soReject } from '../../api/crm';
+import { soApprove, soCancel, soFulfill, soReject } from '../../api/crm';
 import { useListQuery, useMasterQuery } from '../../hooks/useMaster';
 import type { SalesOrder, SalesOrderLine } from '../../types';
 import { Badge, Button, Card, EmptyState, Input, Modal, PageHeader, Select, Spinner, Table } from '../../components/ui';
+import { getErrorMessage, useToast } from '../../components/Toast';
 
 const statusColor: Record<string, 'green' | 'gray' | 'yellow' | 'blue' | 'red'> = {
   draft: 'gray',
@@ -17,6 +18,7 @@ const statusColor: Record<string, 'green' | 'gray' | 'yellow' | 'blue' | 'red'> 
 
 export default function SalesOrdersPage() {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const { data, isLoading, setSearch, setPage, meta } = useMasterQuery<SalesOrder>('sales-orders');
   const customers = useListQuery<{ id: number; name: string }>('customers');
   const products = useListQuery<{ id: number; name: string; sale_price: number }>('products');
@@ -33,7 +35,9 @@ export default function SalesOrdersPage() {
     onSuccess: () => {
       invalidate();
       setOpen(false);
+      toast('SO dibuat.');
     },
+    onError: (e) => toast(getErrorMessage(e), 'error'),
   });
 
   const approve = useMutation({
@@ -43,10 +47,31 @@ export default function SalesOrdersPage() {
       queryClient.invalidateQueries({ queryKey: ['stocks'] });
       queryClient.invalidateQueries({ queryKey: ['stock-movements'] });
       queryClient.invalidateQueries({ queryKey: ['reservations'] });
+      toast('SO disetujui, stok direservasi.');
     },
+    onError: (e) => toast(getErrorMessage(e), 'error'),
   });
 
-  const reject = useMutation({ mutationFn: (id: number) => soReject(id), onSuccess: invalidate });
+  const reject = useMutation({
+    mutationFn: (id: number) => soReject(id),
+    onSuccess: () => {
+      invalidate();
+      toast('SO ditolak.');
+    },
+    onError: (e) => toast(getErrorMessage(e), 'error'),
+  });
+
+  const fulfill = useMutation({
+    mutationFn: (id: number) => soFulfill(id),
+    onSuccess: () => {
+      invalidate();
+      queryClient.invalidateQueries({ queryKey: ['stocks'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-movements'] });
+      queryClient.invalidateQueries({ queryKey: ['reservations'] });
+      toast('SO dikirim, stok berkurang.');
+    },
+    onError: (e) => toast(getErrorMessage(e), 'error'),
+  });
 
   const cancel = useMutation({
     mutationFn: (id: number) => soCancel(id),
@@ -54,7 +79,9 @@ export default function SalesOrdersPage() {
       invalidate();
       queryClient.invalidateQueries({ queryKey: ['stocks'] });
       queryClient.invalidateQueries({ queryKey: ['stock-movements'] });
+      toast('SO dibatalkan, reservasi dilepas.');
     },
+    onError: (e) => toast(getErrorMessage(e), 'error'),
   });
 
   const set = (k: string, v: unknown) => setForm((f) => ({ ...f, [k]: v }));
@@ -144,7 +171,17 @@ export default function SalesOrdersPage() {
                         </button>
                       </>
                     )}
-                    {(so.status === 'pending' || so.status === 'approved') && (
+                    {so.status === 'approved' && (
+                      <>
+                        <button onClick={() => fulfill.mutate(so.id)} className="text-green-600 hover:text-green-800 text-sm mr-3">
+                          Kirim
+                        </button>
+                        <button onClick={() => cancel.mutate(so.id)} className="text-red-500 hover:text-red-700 text-sm">
+                          Batalkan
+                        </button>
+                      </>
+                    )}
+                    {(so.status === 'pending') && (
                       <button onClick={() => cancel.mutate(so.id)} className="text-red-500 hover:text-red-700 text-sm">
                         Batalkan
                       </button>

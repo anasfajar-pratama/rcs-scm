@@ -40,6 +40,10 @@ export async function soReject(id: number): Promise<void> {
   await api.post(`/sales-orders/${id}/reject`);
 }
 
+export async function soFulfill(id: number): Promise<void> {
+  await api.post(`/sales-orders/${id}/fulfill`);
+}
+
 export async function soCancel(id: number): Promise<void> {
   await api.post(`/sales-orders/${id}/cancel`);
 }

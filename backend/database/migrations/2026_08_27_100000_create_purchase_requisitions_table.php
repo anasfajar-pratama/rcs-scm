@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('purchase_requisitions', function (Blueprint $table) {
             $table->id();
             $table->string('pr_no')->unique();
-            $table->foreignId('requested_by')->constrained('users')->nullOnDelete();
+            $table->foreignId('requested_by')->nullable()->constrained('users')->nullOnDelete();
             $table->string('department')->nullable();
             $table->date('needed_date')->nullable();
             $table->enum('status', ['draft', 'pending', 'approved', 'rejected'])->default('pending');

@@ -1,9 +1,4 @@
 # Taste
+See [taste/taste.md](taste/taste.md)
 
-## Communication
-
-- Communicates in Indonesian (Bahasa Indonesia) and expects responses in the same language. Confidence: 0.9
-
-## Workflow
-
-- When presented with multiple-choice design options that include a recommended choice, tends to accept the recommended option (e.g., kanban with arrow buttons over adding a drag-and-drop library, automatic stock reservation on SO approval, full CRUD for activities). Prefers solutions that avoid adding new third-party dependencies. Confidence: 0.7
+- On Windows environments where pandoc is unavailable and Python is only a Microsoft Store stub, prefers generating .docx files with the Node.js `docx` library (script placed in a temp scratchpad folder, not the project repo, so the repo stays clean and the file can be regenerated on demand). Confidence: 0.5

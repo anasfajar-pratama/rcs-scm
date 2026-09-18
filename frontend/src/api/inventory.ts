@@ -22,3 +22,7 @@ export async function adjustmentAction(id: number, action: 'approve' | 'reject')
 export async function opnamePost(id: number): Promise<void> {
   await api.post(`/stock-opnames/${id}/post`);
 }
+
+export async function reservationRelease(id: number): Promise<void> {
+  await api.post(`/reservations/${id}/release`);
+}

@@ -27,10 +27,14 @@ import TransfersPage from './pages/inventory/TransfersPage';
 import AdjustmentsPage from './pages/inventory/AdjustmentsPage';
 import StockMovementsPage from './pages/inventory/StockMovementsPage';
 import StockOpnamePage from './pages/inventory/StockOpnamePage';
+import ReservationsPage from './pages/inventory/ReservationsPage';
 import SettingsPage from './pages/SettingsPage';
+import UsersPage from './pages/system/UsersPage';
 import CrmPage from './pages/CrmPage';
 import PurchasingPage from './pages/PurchasingPage';
 import ProductionPage from './pages/ProductionPage';
+import ProductionOrdersPage from './pages/production/ProductionOrdersPage';
+import BatchesPage from './pages/production/BatchesPage';
 import ReportsPage from './pages/ReportsPage';
 
 export const router = createBrowserRouter([
@@ -63,6 +67,7 @@ export const router = createBrowserRouter([
           { path: '/inventory/adjustments', element: <AdjustmentsPage /> },
           { path: '/inventory/movements', element: <StockMovementsPage /> },
           { path: '/inventory/opname', element: <StockOpnamePage /> },
+          { path: '/inventory/reservations', element: <ReservationsPage /> },
 
           { path: '/purchasing', element: <PurchasingPage /> },
           { path: '/purchasing/suppliers', element: <SuppliersPage /> },
@@ -74,8 +79,11 @@ export const router = createBrowserRouter([
           { path: '/purchasing/return', element: <PurchaseReturnPage /> },
 
           { path: '/production', element: <ProductionPage /> },
+          { path: '/production/orders', element: <ProductionOrdersPage /> },
+          { path: '/production/batches', element: <BatchesPage /> },
           { path: '/reports', element: <ReportsPage /> },
           { path: '/settings', element: <SettingsPage /> },
+          { path: '/users', element: <UsersPage /> },
         ],
       },
     ],

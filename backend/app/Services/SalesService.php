@@ -211,6 +211,46 @@ class SalesService
         $so->update(['status' => 'rejected']);
     }
 
+    /**
+     * Fulfill an approved SO: allocate reserved stock for shipment.
+     * Decrements qty_reserved, records issue movements, sets SO fulfilled.
+     */
+    public function fulfillSo(SalesOrder $so): void
+    {
+        DB::transaction(function () use ($so) {
+            $reservation = $so->reservations()
+                ->whereIn('status', ['reserved', 'partially_shipped'])
+                ->latest()
+                ->first();
+
+            if (! $reservation) {
+                throw new \DomainException('Tidak ada reservasi aktif untuk SO ini.');
+            }
+
+            $remainingTotal = 0;
+            foreach ($so->lines as $line) {
+                $remaining = (float) $line->qty - (float) $line->qty_shipped;
+                if ($remaining > 0) {
+                    $remainingTotal += $remaining;
+                }
+            }
+
+            $this->stockService->allocateForShipment($reservation, $remainingTotal);
+
+            foreach ($so->lines as $line) {
+                $remaining = (float) $line->qty - (float) $line->qty_shipped;
+                if ($remaining > 0) {
+                    $line->update(['qty_shipped' => $line->qty]);
+                }
+            }
+
+            $reservation->update(['status' => 'partially_shipped']);
+
+            $allFulfilled = $so->lines()->whereColumn('qty_shipped', '<', 'qty')->count() === 0;
+            $so->update(['status' => $allFulfilled ? 'fulfilled' : 'approved']);
+        });
+    }
+
     public function cancelSo(SalesOrder $so): void
     {
         DB::transaction(function () use ($so) {
