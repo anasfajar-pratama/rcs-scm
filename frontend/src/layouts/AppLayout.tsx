@@ -1,27 +1,29 @@
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { logout } from '../api/auth';
+import { canAccessModule } from '../access';
 
 interface NavItem {
   to: string;
   label: string;
   icon: string;
-  children?: { to: string; label: string }[];
+  perm?: string;
+  children?: { to: string; label: string; perm: string }[];
 }
 
 const nav: NavItem[] = [
-  { to: '/', label: 'Dashboard', icon: '▦' },
+  { to: '/', label: 'Dashboard', icon: '▦', perm: 'dashboard' },
   {
     to: '/product',
     label: 'Product',
     icon: '◧',
     children: [
-      { to: '/product', label: 'Produk' },
-      { to: '/product/categories', label: 'Kategori' },
-      { to: '/product/units', label: 'Satuan' },
-      { to: '/product/brands', label: 'Brand' },
-      { to: '/product/price-lists', label: 'Price List' },
+      { to: '/product', label: 'Produk', perm: 'products' },
+      { to: '/product/categories', label: 'Kategori', perm: 'categories' },
+      { to: '/product/units', label: 'Satuan', perm: 'units' },
+      { to: '/product/brands', label: 'Brand', perm: 'brands' },
+      { to: '/product/price-lists', label: 'Price List', perm: 'price-lists' },
     ],
   },
   {
@@ -29,13 +31,13 @@ const nav: NavItem[] = [
     label: 'Inventory',
     icon: '▤',
     children: [
-      { to: '/inventory', label: 'Stok' },
-      { to: '/inventory/warehouses', label: 'Gudang' },
-      { to: '/inventory/transfers', label: 'Transfer' },
-      { to: '/inventory/adjustments', label: 'Adjustment' },
-      { to: '/inventory/movements', label: 'Mutasi' },
-      { to: '/inventory/opname', label: 'Stock Opname' },
-      { to: '/inventory/reservations', label: 'Reservasi' },
+      { to: '/inventory', label: 'Stok', perm: 'stocks' },
+      { to: '/inventory/warehouses', label: 'Gudang', perm: 'warehouses' },
+      { to: '/inventory/transfers', label: 'Transfer', perm: 'transfers' },
+      { to: '/inventory/adjustments', label: 'Adjustment', perm: 'adjustments' },
+      { to: '/inventory/movements', label: 'Mutasi', perm: 'stock-movements' },
+      { to: '/inventory/opname', label: 'Stock Opname', perm: 'stock-opnames' },
+      { to: '/inventory/reservations', label: 'Reservasi', perm: 'reservations' },
     ],
   },
   {
@@ -43,13 +45,14 @@ const nav: NavItem[] = [
     label: 'Purchasing',
     icon: '◈',
     children: [
-      { to: '/purchasing/suppliers', label: 'Supplier' },
-      { to: '/purchasing/pr', label: 'PR' },
-      { to: '/purchasing/rfq', label: 'RFQ' },
-      { to: '/purchasing/quotation', label: 'Quotation' },
-      { to: '/purchasing/po', label: 'PO' },
-      { to: '/purchasing/receiving', label: 'Receiving' },
-      { to: '/purchasing/return', label: 'Purchase Return' },
+      { to: '/purchasing/suppliers', label: 'Supplier', perm: 'suppliers' },
+      { to: '/purchasing/pr', label: 'Purchase Requisition', perm: 'pr' },
+      // { to: '/purchasing/rfq', label: 'RFQ', perm: 'rfq' },
+      // { to: '/purchasing/quotation', label: 'Quotation', perm: 'quotations' },
+      { to: '/purchasing/quick-po', label: 'Quick PO', perm: 'pos' },
+      { to: '/purchasing/po', label: 'PO', perm: 'pos' },
+      { to: '/purchasing/receiving', label: 'Receiving', perm: 'receivings' },
+      { to: '/purchasing/return', label: 'Purchase Return', perm: 'purchase-returns' },
     ],
   },
   {
@@ -57,13 +60,13 @@ const nav: NavItem[] = [
     label: 'CRM',
     icon: '◉',
     children: [
-      { to: '/crm', label: 'Pipeline' },
-      { to: '/crm/leads', label: 'Leads' },
-      { to: '/crm/opportunities', label: 'Opportunities' },
-      { to: '/crm/activities', label: 'Activities' },
-      { to: '/crm/quotations', label: 'Quotations' },
-      { to: '/crm/sales-orders', label: 'Sales Orders' },
-      { to: '/crm/customers', label: 'Customers' },
+      { to: '/crm', label: 'Pipeline', perm: 'opportunities' },
+      { to: '/crm/leads', label: 'Leads', perm: 'leads' },
+      { to: '/crm/opportunities', label: 'Opportunities', perm: 'opportunities' },
+      { to: '/crm/activities', label: 'Activities', perm: 'activities' },
+      { to: '/crm/quotations', label: 'Quotations', perm: 'quotations-sales' },
+      { to: '/crm/sales-orders', label: 'Sales Orders', perm: 'sales-orders' },
+      { to: '/crm/customers', label: 'Customers', perm: 'customers' },
     ],
   },
   {
@@ -71,32 +74,20 @@ const nav: NavItem[] = [
     label: 'Production',
     icon: '⚙',
     children: [
-      { to: '/production', label: 'Production' },
-      { to: '/production/orders', label: 'Production Orders' },
-      { to: '/production/batches', label: 'Batch / Traceability' },
+      { to: '/production/orders', label: 'Production Orders', perm: 'production-orders' },
+      { to: '/production/batches', label: 'Batch / Traceability', perm: 'batches' },
     ],
   },
-  { to: '/reports', label: 'Reports', icon: '▥' },
-  { to: '/settings', label: 'Settings', icon: '⚙' },
-  { to: '/users', label: 'Users', icon: '👤' },
+  { to: '/reports', label: 'Reports', icon: '▥', perm: 'reports' },
+  { to: '/settings', label: 'Settings', icon: '⚙', perm: 'settings' },
+  { to: '/users', label: 'Users', icon: '👤', perm: 'users' },
 ];
 
-function SidebarLink({ item }: { item: NavItem }) {
+function SidebarLink({ item, open, onToggle }: { item: NavItem; open: boolean; onToggle: () => void }) {
   const location = useLocation();
-  const isActive = (path: string) => location.pathname.startsWith(path);
-
-  // Section yang berisi route aktif terbuka saat pertama kali dirender,
-  // tapi setelah itu user bebas membuka/menutupnya.
-  const [open, setOpen] = useState(() => isActive(item.to));
-
-  // Saat berpindah ke route di dalam section ini (misal dari halaman lain),
-  // buka kembali section tersebut.
-  useEffect(() => {
-    if (!open && isActive(item.to)) {
-      setOpen(true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname]);
+  // Cocokkan per-segmen: "/product" tidak boleh match "/production" (prefix-collision).
+  const isActive = (path: string) =>
+    location.pathname === path || location.pathname.startsWith(path + '/');
 
   if (!item.children) {
     return (
@@ -114,12 +105,10 @@ function SidebarLink({ item }: { item: NavItem }) {
     );
   }
 
-  const expanded = open;
-
   return (
     <div>
       <button
-        onClick={() => setOpen((o) => !o)}
+        onClick={onToggle}
         className={`w-full flex items-center justify-between px-5 py-2.5 text-sm text-white/80 hover:bg-white/10 transition ${
           isActive(item.to) ? 'bg-white/15 text-white' : ''
         }`}
@@ -128,9 +117,9 @@ function SidebarLink({ item }: { item: NavItem }) {
           <span>{item.icon}</span>
           {item.label}
         </span>
-        <span className={`text-xs transition ${expanded ? 'rotate-90' : ''}`}>▸</span>
+        <span className={`text-xs transition ${open ? 'rotate-90' : ''}`}>▸</span>
       </button>
-      {expanded && (
+      {open && (
         <div className="bg-black/10">
           {item.children.map((c) => (
             <NavLink
@@ -153,7 +142,43 @@ function SidebarLink({ item }: { item: NavItem }) {
 
 export default function AppLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, clear } = useAuthStore();
+
+  // Menu yang tampil disesuaikan dengan permission role user saat login:
+  // group hanya tampil jika masih ada child yang diizinkan, leaf tampil jika modulnya diizinkan.
+  const visibleNav = useMemo(() => {
+    const visible: NavItem[] = [];
+    for (const item of nav) {
+      if (item.children) {
+        const children = item.children.filter((c) => canAccessModule(user, c.perm));
+        if (children.length > 0) visible.push({ ...item, children });
+      } else if (canAccessModule(user, item.perm ?? '')) {
+        visible.push(item);
+      }
+    }
+    return visible;
+  }, [user]);
+
+  // Accordion: hanya satu section yang terbuka; section berisi route aktif terbuka saat inisialisasi.
+  const [openSection, setOpenSection] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const active = visibleNav.find((item) => {
+      if (!item.children) return false;
+      const p = window.location.pathname;
+      return p === item.to || p.startsWith(item.to + '/');
+    });
+    return active?.to ?? null;
+  });
+
+  // Saat berpindah route, buka section milik route baru tersebut (menutup section lain).
+  useEffect(() => {
+    const active = visibleNav.find((item) => {
+      if (!item.children) return false;
+      return location.pathname === item.to || location.pathname.startsWith(item.to + '/');
+    });
+    if (active) setOpenSection(active.to);
+  }, [location.pathname, visibleNav]);
 
   const handleLogout = async () => {
     try {
@@ -170,8 +195,13 @@ export default function AppLayout() {
       <aside className="w-60 shrink-0 bg-brand-800 text-white flex flex-col">
         <div className="px-5 py-5 font-bold text-lg border-b border-white/10">RCS SCM</div>
         <nav className="flex-1 py-4 overflow-auto">
-          {nav.map((item) => (
-            <SidebarLink key={item.to} item={item} />
+          {visibleNav.map((item) => (
+            <SidebarLink
+              key={item.to}
+              item={item}
+              open={openSection === item.to}
+              onToggle={() => setOpenSection((cur) => (cur === item.to ? null : item.to))}
+            />
           ))}
         </nav>
         <div className="px-5 py-4 border-t border-white/10 text-sm">

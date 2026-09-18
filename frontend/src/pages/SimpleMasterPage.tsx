@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { crudApi } from '../api/crud';
 import { useMasterQuery } from '../hooks/useMaster';
-import { Button, Card, Checkbox, EmptyState, Input, Modal, PageHeader, Select, Spinner, Table } from '../components/ui';
+import { Button, Card, Checkbox, EmptyState, Input, Modal, PageHeader, Select, Spinner, Table, Textarea } from '../components/ui';
 
 export interface MasterColumn {
   key: string;
@@ -17,6 +17,8 @@ export interface MasterField {
   type?: 'text' | 'number' | 'select' | 'checkbox' | 'textarea';
   options?: { label: string; value: string | number }[];
   placeholder?: string;
+  hint?: string;
+  span?: 1 | 2;
 }
 
 interface Props {
@@ -158,42 +160,54 @@ export default function SimpleMasterPage({ resource, title, subtitle, columns, f
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {fields.map((f) => {
+            const span = f.span === 2 ? 'sm:col-span-2' : '';
             if (f.type === 'checkbox') {
               return (
                 <div key={f.key} className="sm:col-span-2">
                   <Checkbox label={f.label} checked={Boolean(form[f.key])} onChange={(v) => set(f.key, v)} />
+                  {f.hint && <p className="text-xs text-gray-400 mt-1">{f.hint}</p>}
                 </div>
               );
             }
             if (f.type === 'select') {
               return (
-                <Select
-                  key={f.key}
-                  label={f.label}
-                  value={String(form[f.key] ?? '')}
-                  onChange={(v) => set(f.key, v)}
-                  options={f.options ?? []}
-                  placeholder={f.placeholder}
-                />
+                <div key={f.key} className={span}>
+                  <Select
+                    label={f.label}
+                    value={String(form[f.key] ?? '')}
+                    onChange={(v) => set(f.key, v)}
+                    options={f.options ?? []}
+                    placeholder={f.placeholder}
+                  />
+                  {f.hint && <p className="text-xs text-gray-400 mt-1">{f.hint}</p>}
+                </div>
               );
             }
             if (f.type === 'textarea') {
               return (
-                <div key={f.key} className="sm:col-span-2">
-                  <Input label={f.label} value={String(form[f.key] ?? '')} onChange={(v) => set(f.key, v)} placeholder={f.placeholder} />
+                <div key={f.key} className={span}>
+                  <Textarea
+                    label={(f.required ? f.label + ' *' : f.label) ?? ''}
+                    value={String(form[f.key] ?? '')}
+                    onChange={(v) => set(f.key, v)}
+                    placeholder={f.placeholder}
+                  />
+                  {f.hint && <p className="text-xs text-gray-400 mt-1">{f.hint}</p>}
                 </div>
               );
             }
             return (
-              <Input
-                key={f.key}
-                label={(f.required ? f.label + ' *' : f.label) ?? ''}
-                type={f.type ?? 'text'}
-                value={String(form[f.key] ?? '')}
-                onChange={(v) => set(f.key, f.type === 'number' ? Number(v) : v)}
-                placeholder={f.placeholder}
-                required={f.required}
-              />
+              <div key={f.key} className={span}>
+                <Input
+                  label={(f.required ? f.label + ' *' : f.label) ?? ''}
+                  type={f.type ?? 'text'}
+                  value={String(form[f.key] ?? '')}
+                  onChange={(v) => set(f.key, f.type === 'number' ? Number(v) : v)}
+                  placeholder={f.placeholder}
+                  required={f.required}
+                />
+                {f.hint && <p className="text-xs text-gray-400 mt-1">{f.hint}</p>}
+              </div>
             );
           })}
         </div>

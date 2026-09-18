@@ -28,6 +28,8 @@ use App\Http\Controllers\Api\StockController;
 use App\Http\Controllers\Api\StockMovementController;
 use App\Http\Controllers\Api\StockOpnameController;
 use App\Http\Controllers\Api\SupplierController;
+use App\Http\Controllers\Api\SupplierProductPriceController;
+use App\Http\Controllers\Api\QuickPoController;
 use App\Http\Controllers\Api\SupplierQuotationController;
 use App\Http\Controllers\Api\TransferController;
 use App\Http\Controllers\Api\UnitController;
@@ -51,6 +53,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('customers', CustomerController::class);
     Route::apiResource('suppliers', SupplierController::class)->parameters(['suppliers' => 'supplier']);
+    Route::apiResource('supplier-prices', SupplierProductPriceController::class)
+        ->parameters(['supplier-prices' => 'supplierProductPrice']);
+    Route::post('/quick-pos', [QuickPoController::class, 'store']);
     Route::apiResource('warehouses', WarehouseController::class);
     Route::apiResource('locations', LocationController::class)->parameters(['locations' => 'location']);
 
@@ -118,6 +123,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/pos/{po}/approve', [PurchaseOrderController::class, 'approve']);
     Route::post('/pos/{po}/reject', [PurchaseOrderController::class, 'reject']);
     Route::post('/pos/{po}/cancel', [PurchaseOrderController::class, 'cancel']);
+    Route::post('/pos/{po}/shipping-cost', [PurchaseOrderController::class, 'shippingCost']);
 
     Route::get('/receivings', [ReceivingController::class, 'index']);
     Route::post('/receivings', [ReceivingController::class, 'store']);
@@ -137,6 +143,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/leads/{lead}', [LeadController::class, 'destroy']);
     Route::post('/leads/{lead}/status', [LeadController::class, 'updateStatus']);
     Route::post('/leads/{lead}/convert', [LeadController::class, 'convert']);
+    Route::get('/leads/{lead}/histories', [LeadController::class, 'histories']);
+    Route::post('/leads/{lead}/histories', [LeadController::class, 'storeHistory']);
 
     Route::get('/opportunities', [OpportunityController::class, 'index']);
     Route::post('/opportunities', [OpportunityController::class, 'store']);

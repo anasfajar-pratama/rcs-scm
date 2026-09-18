@@ -1,7 +1,7 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { crudApi } from '../../api/crud';
-import { leadConvert, leadStatus } from '../../api/crm';
+import { addLeadHistory, leadConvert, leadHistories, leadStatus } from '../../api/crm';
 import { useMasterQuery } from '../../hooks/useMaster';
 import type { Lead } from '../../types';
 import { Badge, Button, Card, EmptyState, Input, Modal, PageHeader, Select, Spinner, Table, Textarea } from '../../components/ui';
@@ -23,6 +23,45 @@ const sourceOptions = [
   { label: 'Event', value: 'event' },
   { label: 'Lainnya', value: 'other' },
 ];
+
+const methodOptions = [
+  { label: 'Telepon', value: 'call' },
+  { label: 'WhatsApp', value: 'whatsapp' },
+  { label: 'Email', value: 'email' },
+  { label: 'Meeting', value: 'meeting' },
+  { label: 'Kunjungan', value: 'visit' },
+  { label: 'Lainnya', value: 'other' },
+];
+const methodLabel = Object.fromEntries(methodOptions.map((o) => [o.value, o.label]));
+
+const outcomeOptions = [
+  { label: 'Tertarik', value: 'interested' },
+  { label: 'Perlu Follow-up', value: 'follow_up' },
+  { label: 'Tidak Tertarik', value: 'not_interested' },
+  { label: 'Tidak Diangkat', value: 'no_answer' },
+  { label: 'Lainnya', value: 'other' },
+];
+const outcomeLabel = Object.fromEntries(outcomeOptions.map((o) => [o.value, o.label]));
+
+const methodColor: Record<string, 'green' | 'gray' | 'yellow' | 'blue' | 'red'> = {
+  call: 'blue',
+  whatsapp: 'green',
+  email: 'gray',
+  meeting: 'yellow',
+  visit: 'green',
+  other: 'gray',
+};
+
+const outcomeColor: Record<string, 'green' | 'gray' | 'yellow' | 'blue' | 'red'> = {
+  interested: 'green',
+  follow_up: 'yellow',
+  not_interested: 'red',
+  no_answer: 'gray',
+  other: 'gray',
+};
+
+const formatDate = (d: string) =>
+  new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
 
 const statusOptions = [
   { label: 'Semua', value: '' },
@@ -93,6 +132,33 @@ export default function LeadsPage() {
     },
     onError: (e) => toast(getErrorMessage(e), 'error'),
   });
+
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyLead, setHistoryLead] = useState<Lead | null>(null);
+  const [historyForm, setHistoryForm] = useState({ contacted_at: '', method: 'call', outcome: 'follow_up', result: '' });
+
+  const historiesQuery = useQuery({
+    queryKey: ['lead-histories', historyLead?.id],
+    queryFn: () => (historyLead ? leadHistories(historyLead.id) : Promise.resolve([])),
+    enabled: !!historyLead,
+  });
+
+  const addHistory = useMutation({
+    mutationFn: () => addLeadHistory(historyLead!.id, historyForm),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['lead-histories', historyLead?.id] });
+      invalidate();
+      setHistoryForm((f) => ({ ...f, result: '', method: 'call', outcome: 'follow_up' }));
+      toast('Riwayat kontak ditambahkan.');
+    },
+    onError: (e) => toast(getErrorMessage(e), 'error'),
+  });
+
+  const openHistory = (l: Lead) => {
+    setHistoryLead(l);
+    setHistoryForm({ contacted_at: new Date().toISOString().slice(0, 10), method: 'call', outcome: 'follow_up', result: '' });
+    setHistoryOpen(true);
+  };
 
   const openCreate = () => {
     setEditing(null);
@@ -174,12 +240,13 @@ export default function LeadsPage() {
                     <Badge color={statusColor[l.status] ?? 'gray'}>{l.status}</Badge>
                   </td>
                   <td className="py-3 px-4 text-right whitespace-nowrap">
-                    {l.status === 'new' && (
-                      <button onClick={() => statusAction.mutate({ id: l.id, status: 'contacted' })} className="text-brand-600 hover:text-brand-800 text-sm mr-3">
-                        Hubungi
+                    <span className="inline-flex flex-col items-center mr-3 align-middle">
+                      <button onClick={() => openHistory(l)} className="text-brand-600 hover:text-brand-800 text-sm">
+                        Riwayat
                       </button>
-                    )}
-                    {l.status === 'contacted' && (
+                      <span className="text-[10px] text-gray-400 leading-tight">{(l.histories_count ?? 0)}× kontak</span>
+                    </span>
+                    {(l.status === 'new' || l.status === 'contacted') && (
                       <button onClick={() => statusAction.mutate({ id: l.id, status: 'qualified' })} className="text-brand-600 hover:text-brand-800 text-sm mr-3">
                         Kualifikasi
                       </button>
@@ -244,18 +311,133 @@ export default function LeadsPage() {
           </>
         }
       >
-        <div className="space-y-4">
-          <Input label="Nama *" value={String(form.name ?? '')} onChange={(v) => set('name', v)} required />
-          <Input label="Perusahaan" value={String(form.company ?? '')} onChange={(v) => set('company', v)} />
-          <Input label="Email" value={String(form.email ?? '')} onChange={(v) => set('email', v)} />
-          <Input label="Telepon" value={String(form.phone ?? '')} onChange={(v) => set('phone', v)} />
-          <Select
-            label="Sumber"
-            value={String(form.source ?? 'walk_in')}
-            onChange={(v) => set('source', v)}
-            options={sourceOptions}
-          />
-          <Textarea label="Catatan" value={String(form.notes ?? '')} onChange={(v) => set('notes', v)} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="sm:col-span-2">
+            <Input
+              label="Nama *"
+              value={String(form.name ?? '')}
+              onChange={(v) => set('name', v)}
+              required
+              placeholder="cth: Budi Santoso"
+            />
+            <p className="text-xs text-gray-400 mt-1">Nama calon pelanggan (wajib diisi)</p>
+          </div>
+          <div>
+            <Input
+              label="Perusahaan"
+              value={String(form.company ?? '')}
+              onChange={(v) => set('company', v)}
+              placeholder="cth: PT Karya Utama"
+            />
+            <p className="text-xs text-gray-400 mt-1">Opsional — nama perusahaan / instansi</p>
+          </div>
+          <div>
+            <Select
+              label="Sumber"
+              value={String(form.source ?? 'walk_in')}
+              onChange={(v) => set('source', v)}
+              options={sourceOptions}
+            />
+            <p className="text-xs text-gray-400 mt-1">Dari mana lead berasal</p>
+          </div>
+          <div>
+            <Input
+              label="Email"
+              value={String(form.email ?? '')}
+              onChange={(v) => set('email', v)}
+              placeholder="cth: budi@email.com"
+            />
+            <p className="text-xs text-gray-400 mt-1">Email aktif untuk pengiriman penawaran</p>
+          </div>
+          <div>
+            <Input
+              label="Telepon"
+              value={String(form.phone ?? '')}
+              onChange={(v) => set('phone', v)}
+              placeholder="cth: 0812-3456-7890"
+            />
+            <p className="text-xs text-gray-400 mt-1">Nomor HP / WA yang bisa dihubungi</p>
+          </div>
+          <div className="sm:col-span-2">
+            <Textarea
+              label="Catatan"
+              value={String(form.notes ?? '')}
+              onChange={(v) => set('notes', v)}
+              placeholder="Kebutuhan produk, info tambahan, dll..."
+            />
+            <p className="text-xs text-gray-400 mt-1">Opsional — catatan kualifikasi awal</p>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        title={`Riwayat Kontak — ${historyLead?.name ?? ''}`}
+        size="lg"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setHistoryOpen(false)}>
+              Tutup
+            </Button>
+            <Button onClick={() => addHistory.mutate()} disabled={addHistory.isPending}>
+              {addHistory.isPending ? 'Menyimpan...' : '+ Simpan Kontak'}
+            </Button>
+          </>
+        }
+      >
+        <div className="max-h-56 overflow-auto border border-gray-200 rounded-lg">
+          {historiesQuery.isLoading ? (
+            <div className="p-4 text-sm text-gray-400">Memuat riwayat...</div>
+          ) : (historiesQuery.data ?? []).length === 0 ? (
+            <div className="p-4 text-sm text-gray-400">Belum ada riwayat kontak untuk lead ini.</div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {historiesQuery.data?.map((h) => (
+                <div key={h.id} className="px-4 py-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-mono text-gray-400">{formatDate(h.contacted_at)}</span>
+                    <Badge color={methodColor[h.method] ?? 'gray'}>{methodLabel[h.method] ?? h.method}</Badge>
+                    <Badge color={outcomeColor[h.outcome] ?? 'gray'}>{outcomeLabel[h.outcome] ?? h.outcome}</Badge>
+                    {h.createdBy && <span className="text-xs text-gray-400">oleh {h.createdBy.name}</span>}
+                  </div>
+                  {h.result && <p className="text-sm text-gray-700 mt-1">{h.result}</p>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="border-t border-gray-100 pt-4 mt-4">
+          <h4 className="text-sm font-semibold text-gray-700 mb-3">Input Kontak Baru</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Input
+              label="Tanggal Kontak *"
+              type="date"
+              value={historyForm.contacted_at}
+              onChange={(v) => setHistoryForm((f) => ({ ...f, contacted_at: v }))}
+            />
+            <Select
+              label="Metode *"
+              value={historyForm.method}
+              onChange={(v) => setHistoryForm((f) => ({ ...f, method: v }))}
+              options={methodOptions}
+            />
+            <Select
+              label="Hasil *"
+              value={historyForm.outcome}
+              onChange={(v) => setHistoryForm((f) => ({ ...f, outcome: v }))}
+              options={outcomeOptions}
+            />
+          </div>
+          <div className="mt-4">
+            <Textarea
+              label="Catatan Pembicaraan"
+              value={historyForm.result}
+              onChange={(v) => setHistoryForm((f) => ({ ...f, result: v }))}
+              placeholder="cth: Tertarik dengan produk, minta penawaran harga minggu depan..."
+            />
+          </div>
         </div>
       </Modal>
 

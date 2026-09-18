@@ -9,9 +9,18 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().token ?? localStorage.getItem(TOKEN_KEY);
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  const { token, expiresAt, clear } = useAuthStore.getState();
+
+  // Session expired -> bersihkan auth, ProtectedRoute akan redirect ke /login
+  if (expiresAt && Date.now() >= expiresAt) {
+    localStorage.removeItem(TOKEN_KEY);
+    clear();
+    return config;
+  }
+
+  const activeToken = token ?? localStorage.getItem(TOKEN_KEY);
+  if (activeToken) {
+    config.headers.Authorization = `Bearer ${activeToken}`;
   }
   return config;
 });

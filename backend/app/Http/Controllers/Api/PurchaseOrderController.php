@@ -21,9 +21,16 @@ class PurchaseOrderController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = (int) $request->query('per_page', 15);
+        $status = $request->query('status');
+
         $query = PurchaseOrder::query()
-            ->with('supplier', 'lines.product')
+            ->with('supplier', 'lines.product.unit')
+            ->when($status, fn ($q) => $q->whereIn('status', explode(',', (string) $status)))
             ->latest();
+
+        if ($request->boolean('list')) {
+            return $this->success($query->get());
+        }
 
         return $this->successPagination($query->paginate($perPage), 'OK', fn ($p) => $p->items());
     }
@@ -108,5 +115,16 @@ class PurchaseOrderController extends Controller
         } catch (\DomainException $e) {
             return $this->error($e->getMessage(), 422);
         }
+    }
+
+    public function shippingCost(Request $request, PurchaseOrder $po): JsonResponse
+    {
+        $validated = $request->validate([
+            'shipping_cost' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        $po->update(['shipping_cost' => $validated['shipping_cost']]);
+
+        return $this->success($po->fresh()->load('supplier', 'lines.product.unit'), 'Ongkos kirim ditambahkan.');
     }
 }

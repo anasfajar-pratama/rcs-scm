@@ -11,6 +11,7 @@ export interface User {
 export interface AuthResponse {
   access_token: string;
   token_type: string;
+  expires_at?: string;
   user: User;
 }
 
@@ -270,6 +271,7 @@ export interface StockOpname {
   warehouse_name?: string;
   opname_date?: string;
   status: string;
+  notes?: string;
   lines?: OpnameLine[];
   created_at?: string;
 }
@@ -291,7 +293,23 @@ export interface Lead {
   source: string;
   status: LeadStatus;
   notes?: string;
+  histories_count?: number;
   created_at?: string;
+}
+
+export type ContactMethod = 'call' | 'whatsapp' | 'email' | 'meeting' | 'visit' | 'other';
+export type ContactOutcome = 'interested' | 'follow_up' | 'not_interested' | 'no_answer' | 'other';
+
+export interface LeadHistory {
+  id: number;
+  lead_id: number;
+  contacted_at: string;
+  method: ContactMethod;
+  outcome: ContactOutcome;
+  result?: string;
+  created_by?: number;
+  created_at?: string;
+  createdBy?: { id: number; name: string };
 }
 
 export type OpportunityStage = 'prospecting' | 'qualification' | 'proposal' | 'negotiation' | 'won' | 'lost';
@@ -341,8 +359,10 @@ export interface SalesQuotationLine {
   id?: number;
   product_id: number;
   product_name?: string;
+  product?: { id: number; name: string; sku?: string };
   qty: number;
   unit_price: number;
+  cost?: number;
   discount_percent?: number;
 }
 
@@ -351,6 +371,7 @@ export interface SalesQuotation {
   quotation_no: string;
   customer_id: number;
   customer_name?: string;
+  customer?: { id: number; name: string; email?: string; phone?: string };
   quotation_date?: string;
   valid_until?: string;
   currency: string;
@@ -364,6 +385,7 @@ export interface SalesOrderLine {
   id?: number;
   product_id: number;
   product_name?: string;
+  product?: { id: number; name: string; sku?: string };
   qty: number;
   unit_price: number;
   discount_percent?: number;
@@ -376,6 +398,7 @@ export interface SalesOrder {
   sales_quotation_id?: number;
   customer_id: number;
   customer_name?: string;
+  customer?: { id: number; name: string; email?: string; phone?: string };
   warehouse_id: number;
   warehouse_name?: string;
   order_date?: string;

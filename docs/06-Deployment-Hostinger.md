@@ -63,6 +63,7 @@ QUEUE_CONNECTION=database
 CACHE_STORE=database
 
 SANCTUM_STATEFUL_DOMAINS=app.rcsscm.test
+SANCTUM_TOKEN_EXPIRATION=480   # durasi session API dalam menit (default 480 = 8 jam)
 ```
 
 ### 2.4 Migrasi & Seed

@@ -4,6 +4,8 @@ import { getReport } from '../api/reports';
 import { useListQuery } from '../hooks/useMaster';
 import type { ReportData } from '../types';
 import { Badge, Button, Card, EmptyState, PageHeader, Select, Spinner, Table } from '../components/ui';
+import { useAuthStore } from '../stores/authStore';
+import { allowedReportTabs } from '../access';
 
 const REPORT_COLUMNS: Record<string, { key: string; label: string }[]> = {
   inventory: [
@@ -86,20 +88,28 @@ const TABS = [
 ];
 
 export default function ReportsPage() {
-  const [report, setReport] = useState('inventory');
+  const user = useAuthStore((s) => s.user);
+
+  // Tab laporan dibatasi sesuai role user (matriks di src/access.ts).
+  const allowedTabs = allowedReportTabs(user?.roles);
+  const tabs = TABS.filter((t) => allowedTabs.includes(t.key));
+  const [report, setReport] = useState(() => tabs[0]?.key ?? '');
   const [warehouseFilter, setWarehouseFilter] = useState('');
   const warehouses = useListQuery<{ id: number; name: string }>('warehouses');
 
+  const activeReport = tabs.some((t) => t.key === report) ? report : (tabs[0]?.key ?? '');
+
   const params: Record<string, unknown> = {};
-  if (report === 'inventory' && warehouseFilter) params.warehouse_id = Number(warehouseFilter);
-  if (report === 'expiry') params.days = 90;
+  if (activeReport === 'inventory' && warehouseFilter) params.warehouse_id = Number(warehouseFilter);
+  if (activeReport === 'expiry') params.days = 90;
 
   const { data, isLoading, isFetching } = useQuery({
-    queryKey: ['reports', report, params],
-    queryFn: () => getReport(report, params),
+    queryKey: ['reports', activeReport, params],
+    queryFn: () => getReport(activeReport, params),
+    enabled: activeReport !== '',
   });
 
-  const columns = REPORT_COLUMNS[report] ?? [];
+  const columns = REPORT_COLUMNS[activeReport] ?? [];
   const rows = (data?.rows ?? []) as ReportData['rows'];
 
   const exportCsv = () => {
@@ -140,21 +150,23 @@ export default function ReportsPage() {
     <div>
       <PageHeader title="Reports" subtitle="Laporan & ekspor CSV" action={<Button onClick={exportCsv} disabled={rows.length === 0}>Ekspor CSV</Button>} />
 
-      <div className="flex flex-wrap gap-2 mb-4">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setReport(t.key)}
-            className={`px-3 py-1.5 rounded-lg text-sm transition ${
-              report === t.key ? 'bg-brand-700 text-white font-medium' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      {tabs.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-4">
+          {tabs.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setReport(t.key)}
+              className={`px-3 py-1.5 rounded-lg text-sm transition ${
+                activeReport === t.key ? 'bg-brand-700 text-white font-medium' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      )}
 
-      {report === 'inventory' && (
+      {activeReport === 'inventory' && (
         <div className="mb-4 max-w-xs">
           <Select
             label=""
@@ -170,7 +182,11 @@ export default function ReportsPage() {
         {isLoading || isFetching ? (
           <Spinner />
         ) : rows.length === 0 ? (
-          <EmptyState message="Belum ada data untuk laporan ini." />
+          <EmptyState
+            message={
+              activeReport ? 'Belum ada data untuk laporan ini.' : 'Role Anda tidak memiliki akses ke laporan apa pun.'
+            }
+          />
         ) : (
           <>
             {data?.total_value !== undefined && (

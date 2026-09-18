@@ -23,6 +23,8 @@ class SupplierController extends BaseMasterController
             'tax_id' => ['nullable', 'string', 'max:50'],
             'email' => ['nullable', 'email', Rule::unique('suppliers', 'email')->ignore($supplier?->id)],
             'phone' => ['nullable', 'string', 'max:50'],
+            'pic_name' => ['nullable', 'string', 'max:255'],
+            'pic_phone' => ['nullable', 'string', 'max:50'],
             'address' => ['nullable', 'string'],
             'payment_terms' => ['nullable', 'string', 'max:100'],
             'currency' => ['nullable', 'string', 'max:10'],

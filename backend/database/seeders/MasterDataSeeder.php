@@ -212,6 +212,8 @@ class MasterDataSeeder extends Seeder
             ['key' => 'doc.pr_prefix', 'value' => 'PR', 'group' => 'documents'],
             ['key' => 'doc.po_prefix', 'value' => 'PO', 'group' => 'documents'],
             ['key' => 'doc.so_prefix', 'value' => 'SO', 'group' => 'documents'],
+            ['key' => 'po.sender_name', 'value' => 'Vevy Anjeli', 'group' => 'po'],
+            ['key' => 'po.sender_phone', 'value' => '0813 3838 3737', 'group' => 'po'],
         ];
         foreach ($settings as $s) {
             Setting::updateOrCreate(['key' => $s['key']], $s);

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Lead;
+use App\Models\LeadHistory;
 use App\Services\SalesService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -24,6 +25,7 @@ class LeadController extends Controller
         $status = $request->query('status');
 
         $query = Lead::query()
+            ->withCount('histories')
             ->when($search, fn ($q) => $q->where(fn ($q) => $q->where('name', 'like', "%$search%")->orWhere('email', 'like', "%$search%")->orWhere('company', 'like', "%$search%")))
             ->when($status, fn ($q) => $q->where('status', $status))
             ->latest();
@@ -92,6 +94,34 @@ class LeadController extends Controller
         $this->salesService->updateLeadStatus($lead, $validated['status']);
 
         return $this->success($lead->fresh(), 'Status lead diperbarui.');
+    }
+
+    public function histories(Lead $lead): JsonResponse
+    {
+        $histories = $lead->histories()
+            ->with('createdBy:id,name')
+            ->latest('contacted_at')
+            ->latest('id')
+            ->get();
+
+        return $this->success($histories);
+    }
+
+    public function storeHistory(Request $request, Lead $lead): JsonResponse
+    {
+        $validated = $request->validate([
+            'contacted_at' => ['required', 'date'],
+            'method' => ['required', 'in:call,whatsapp,email,meeting,visit,other'],
+            'outcome' => ['required', 'in:interested,follow_up,not_interested,no_answer,other'],
+            'result' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $history = $lead->histories()->create([
+            ...$validated,
+            'created_by' => auth()->id(),
+        ]);
+
+        return $this->success($history->load('createdBy:id,name'), 'Riwayat kontak ditambahkan.', 201);
     }
 
     public function convert(Request $request, Lead $lead): JsonResponse
