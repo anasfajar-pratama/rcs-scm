@@ -67,13 +67,26 @@ SANCTUM_STATEFUL_DOMAINS=app.rcsscm.test
 
 ### 2.4 Migrasi & Seed
 
+> Untuk deploy awal (database kosong), gunakan `migrate:fresh` agar tidak bentrok dengan tabel lama.
+
 ```bash
-php artisan migrate --force
-php artisan db:seed --force        # role, admin, master data, demo data
+php artisan migrate:fresh --force
+php artisan db:seed --force        # role, user, master data, demo data
 php artisan storage:link           # jika pakai upload
 php artisan config:cache
 php artisan route:cache
 ```
+
+**Default Users (setelah seed):**
+
+| Role | Email | Password |
+|------|-------|----------|
+| Super Admin | admin@rcsscm.test | password |
+| Supervisor | supervisor@rcsscm.test | password123 |
+| Sales | sales@rcsscm.test | password123 |
+| Warehouse | warehouse@rcsscm.test | password123 |
+| Purchasing | purchasing@rcsscm.test | password123 |
+| Production | production@rcsscm.test | password123 |
 
 ### 2.5 Scheduler (untuk alert/queue)
 
@@ -102,16 +115,19 @@ npm run build
 ### 3.2 Upload
 
 1. Upload isi `frontend/dist/` ke `domains/app.rcsscm.test/public_html`.
-2. Pastikan `.htaccess` SPA (fallback ke index.html):
+2. Pastikan `.htaccess` SPA (fallback ke index.html) terpasang — file ini sudah tersedia di `frontend/public/.htaccess` dan otomatis ikut ter-copy ke `dist/` saat `npm run build`:
 
 ```apache
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteBase /
-  RewriteRule ^index\.html$ - [L]
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule . /index.html [L]
+
+  # File/direktori yang benar-benar ada tetap dilayani langsung (assets, dll)
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Selain itu, semua request di-fallback ke index.html (SPA routing)
+  RewriteRule ^ index.html [L]
 </IfModule>
 ```
 

@@ -36,6 +36,7 @@ import ProductionPage from './pages/ProductionPage';
 import ProductionOrdersPage from './pages/production/ProductionOrdersPage';
 import BatchesPage from './pages/production/BatchesPage';
 import ReportsPage from './pages/ReportsPage';
+import NotFoundPage from './pages/NotFoundPage';
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -84,6 +85,7 @@ export const router = createBrowserRouter([
           { path: '/reports', element: <ReportsPage /> },
           { path: '/settings', element: <SettingsPage /> },
           { path: '/users', element: <UsersPage /> },
+          { path: '*', element: <NotFoundPage /> },
         ],
       },
     ],

@@ -13,7 +13,10 @@
       "Shell(where node 2>nul & where npm 2>nul & where php 2>nul)",
       "Shell(node gen-docx.js 2>&1)",
       "Shell(dir:*)",
-      "powershell"
+      "powershell",
+      "Shell(del F:\\rcs-scm\\package.json F:\\rcs-scm\\package-lock.json 2>nul && rmdir /s /q F:\\rcs-scm\\node_modules 2>nul)",
+      "Shell(if:*)",
+      "Shell(node generate-docs.mjs)"
     ],
     "deny": [],
     "defaultMode": "default"
